@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../libs/css/mui.picker.min.css" />
+		<link rel="stylesheet" href="../css/comm.css">
+		<style type="text/css">
+			.addicon {
+				color: #6EC73E;
+				position: absolute;
+				top: 50%;
+				margin-top: -12px;
+				right: 15px;
+			}
+			.addicon span {
+				font-size: 16px;
+				padding-left: 5px;
+			}
+			.meterialResult {}
+			.meterialResult .mui-row {
+				padding: 0 15px;
+				height: 40px;
+				line-height: 40px;
+				border-bottom: 1px solid #c8c7cc;
+			}
+			.meterialResult .mui-row .delete-btn,
+			.selecUsers .mui-row .delete-btn {
+				text-align: right;
+				color: #FF7B6D;
+			}
+			.mui-input-row .mui-switch {
+				margin-top: 8px;
+			}
+			.mui-switch:before {
+				top: -8px;
+			}
+			.selectedimg {
+				/*padding: 15px 15px 5px;*/
+			}
+			.selectedimg div {
+				text-align: center;
+				padding: 10px;
+			}
+			.selectedimg div img {
+				width: 100%;
+				height: 90px;
+				border-radius: 2px;
+			}
+			.deleteimg {
+				width: 19px;
+				height: 19px;
+				background: url(../images/add_icon_close.png);
+				background-size: 100% 100%;
+				position: absolute;
+				top: 3px;
+				right: 3px;
+			}
+			#plantGroupResult {
+				display: inline-block;
+				width: 60%;
+				padding-right: 40px;
+				text-align: right;
+				float: right;
+			}
+			#showEditImg {
+				display: none;
+			}
+			.alignRight {
+				text-align: right;
+			}
+			.selecUsers {
+				/*border-bottom: 1px solid #c8c7cc;*/
+			}
+			.selecUsers div.mui-row {
+				padding: 0 15px;
+				height: 46px;
+				line-height: 46px;
+				border-bottom: 1px solid #c8c7cc;
+			}
+			.deluser {
+				color: #FF7B6D;
+				position: absolute;
+				right: 15px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<div class="mui-content">
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row bfc" v-show="paramObj.type == 1">
+							<label>上传图片</label>
+							<span @tap="selectPic" class="fr mui-icon mui-icon mui-icon-camera" style="margin-top: 10px;margin-right: 15px;"></span>
+						</div>
+						<!--图片预览-->
+						<div class="mui-row selectedimg">
+							<div class="mui-col-xs-4 selectedimg" v-for="(d,index) in attachmentImgs">
+								<div class="deleteimg" @tap="deleteimg(index)"></div>
+								<img :src="d.showPath" />
+							</div>
+						</div>
+
+						<div class="mui-input-row" @tap="selectFarmingType" v-if="isAdd">
+							<a class="mui-navigate-right"></a>
+							<label>农事类型</label>
+							<span class="fr select-text" id="farmingType">请选择(必填) </span>
+						</div>
+						<div class="mui-input-row" v-else>
+							<!--<a class="mui-navigate-right"></a>-->
+							<label>农事类型</label>
+							<span class="fr select-text" id="farmingType">请选择(必填) </span>
+						</div>
+					</div>
+					<div class="mui-input-group mbtenpx">
+						<template v-if="isAdd">
+							<div class="mui-input-row" @tap="selectGroupList">
+								<a class="mui-navigate-right"></a>
+								<label>区域</label>
+								<span class="fr select-text" id="plantGroupResult" class='mui-ellipsis'>请选择(必填)</span>
+							</div>
+						</template>
+						<template v-else>
+							<div class="mui-input-row">
+								<!--<a class="mui-navigate-right"></a>-->
+								<label>区域</label>
+								<span class="fr select-text" id="plantGroupResult"></span>
+							</div>
+						</template>
+						<div class="mui-input-row">
+							<a class="mui-navigate-right"></a>
+							<label>操作内容</label>
+							<span class="fr select-text" id="dictionaryResult" @tap="selectDictionaryList">请选择(必填) </span>
+						</div>
+						<div class="mui-input-row">
+							<a class="mui-navigate-right"></a>
+							<label>操作时间</label>
+							<span class="fr select-text" @tap="selectQueryDate('operatingDate')">
+								<template v-if="data.operatingDate == ''">请选择(必填) </template>
+								<template v-else>{{data.operatingDate}}</template>
+							</span>
+						</div>
+						<div class="mui-input-row">
+							<a class="mui-navigate-right"></a>
+							<label>农机</label>
+							<span class="fr select-text mui-ellipsis" id="equipmentResult" @tap="selectEquipmentList">请选择(必填) </span>
+						</div>
+						<div class="mui-input-row">
+							<label>操作人</label>
+							<span class="fr mui-icon mui-icon-plus addicon" @tap="selectUserList">
+								<span>添加</span>
+							</span>
+						</div>
+						<div class="selecUsers">
+							<div class="mui-row" v-for="(d,index) in users">
+								<div class="mui-col-xs-9 mui-ellipsis" style="padding-left: 20px;"><span>{{d.nickName}}</span></div>
+								<div class="mui-col-xs-3 delete-btn">
+									<span @tap="delUser(d.userId)" style="color: #FF7B6D;">删除</span>
+								</div>
+							</div>
+						</div>
+						<div class="mui-input-row">
+							<label>工时</label>
+							<input v-model="data.workingHours" type="text" placeholder="请输入(必填)" class="alignRight" @change="isNumber('workingHours')">
+						</div>
+					</div>
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row">
+							<label>是否重复</label>
+							<div class="mui-switch mui-active" id="isRepeat" v-if="data.isRepeat == 1">
+								<div class="mui-switch-handle"></div>
+							</div>
+							<div class="mui-switch" id="isRepeat" v-else>
+								<div class="mui-switch-handle"></div>
+							</div>
+						</div>
+						<div class="mui-input-row" v-show="data.isRepeat == 1">
+							<label>重复间隔</label>
+							<input v-model="data.intervalDay" type="text" class="alignRight" placeholder="请输入0~99数字" @blur="isNumber('intervalDay')">
+						</div>
+						<div class="mui-input-row" v-show="data.isRepeat == 1">
+							<a class="mui-navigate-right"></a>
+							<label>截止时间</label>
+							<span class="fr select-text" @tap="selectQueryDate('deadline')">
+								<template v-if="data.deadline == ''">请选择</template>
+								<template v-else>{{data.deadline}}</template>
+							</span>
+						</div>
+					</div>
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row bfc">
+							<label>投放品</label>
+							<span class="fr mui-icon mui-icon-plus addicon" @tap="toFarmingMateriel">
+								<span>添加</span>
+							</span>
+						</div>
+						<!--投放品列表-->
+						<div class="meterialResult" v-show="meterial.length>0">
+							<template v-for="(d,index) in meterial">
+								<div class="mui-row">
+									<div class="mui-col-xs-6"><span style="color: #FF7B6D;">{{d.name}}</span></div>
+									<div class="mui-col-xs-6 delete-btn">
+										<span @tap="deleteMateriel(d.id)">删除</span>
+									</div>
+								</div>
+								<div class="mui-row" style="padding-left: 50px;">
+									<div class="mui-col-xs-6">使用量({{d.packUnit}})</div>
+									<div class="mui-col-xs-6 alignRight">{{d.usage}}<span style="margin-left: 2px;"></span></div>
+									<div class="mui-col-xs-6">成本(元)</div>
+									<div class="mui-col-xs-6 alignRight">{{d.cost}}</div>
+								</div>
+							</template>
+						</div>
+						<div class="mui-input-row" style="border-top: 1px solid #ddd;">
+							<label>其他成本</label>
+							<input @change="isNumber('otherCost')" v-model="data.otherCost" type="text" class="alignRight" placeholder="请输入(必填)">
+						</div>
+					</div>
+					<div class="mui-input-group mbtenpx">
+
+					</div>
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row textarea-row">
+							<label>农事要求</label>
+							<textarea v-model="data.requirements" placeholder="请选择(必填) "></textarea>
+						</div>
+					</div>
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row textarea-row">
+							<label>备注</label>
+							<textarea v-model="data.remark" placeholder="请填写 "></textarea>
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>
+
+	</body>
+	<script src="../libs/js/mui.min.js"></script>
+	<script src="../libs/js/vue.min.js"></script>
+	<script src="../libs/js/mui.picker.min.js"></script>
+	<script src="../js/comm.js"></script>
+
+	<script>
+		var vm = new Vue({
+			el: '#app',
+			template: indexTpl,
+			data: function() {
+				return {
+					users: [],
+					title: '新增农事',
+					// 列表跳转添加页面是否为新增
+					isAdd: true,
+					// 保存请求地址
+					saveUrl: '',
+					// 非空验证
+					check: true,
+					uploadUrl: APIURL + 'business/attachment/createupload',
+					loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+					// 农事图片数组
+					attachmentId: [],
+					// 新增修改参数
+					paramObj: {
+						data: '', //农事主表json字符串
+						meterial: '', //投放物json字符串
+						attachmentId: [], //图片json字符串
+						userId: JSON.parse(localStorage.getItem('loginUserInfo')).userId, //当前登录人Id
+						username: JSON.parse(localStorage.getItem('loginUserInfo')).username, //当前登录人名字
+						enterpriseId: JSON.parse(localStorage.getItem('loginUserInfo')).enterpriseId, //enterpriseId
+						type: '', //0/1农事类型
+						state: '', //暂时就使用type的值
+					},
+					//农事主表json
+					data: {
+						plantId: '', //		区域（数组）
+						dictionaryId: '', //		操作内容Id
+						operatingDate: '', //		操作时间
+						operationUserId: '', //操作人Id（数组）
+						equipmentId: '', //农机Id
+						workingHours: 1, //（数字类型）工时
+						isRepeat: 0, //（0/1）是否重复
+						intervalDay: 1, //（数字0-99）重复间隔
+						deadline: this.GetDateStr(), //截止时间
+						totalCost: 0, //（根据投放物汇总得到）农资成本
+						otherCost: 0, //（自己填写）其他成本
+						requirements: '', //农事要求
+						remark: '', //备注
+					},
+					// 投放物json字符串数组
+					meterial: [],
+					// 农事图片 
+					attachmentImgs: [],
+					// 农事类型类别
+					typeArr: [{
+						value: '0',
+						text: '计划'
+					}, {
+						value: '1',
+						text: '记录'
+					}],
+					// 区域选择列表
+					AcreList: [],
+					// 操作内容数据
+					DictionaryList: [],
+					// 农机选择列表
+					EquipmentList: [],
+					// 操作人列表
+					operationUserList: [],
+				}
+			},
+			mounted: function() {
+				var vm = this;
+				// 获取区域选择列表
+				vm.getAcreList();
+				// 获取操作内容选择列表
+				vm.getDictionaryList();
+				// 获取农机选择列表
+				vm.getEquipmentList();
+				// 获取操作人列表
+				vm.getOperationUserList();
+				mui.init({
+					beforeback: function() {
+						//获得列表界面的webview  
+						var list = plus.webview.currentWebview().opener();
+						//触发列表界面的自定义事件（refresh）,从而进行数据刷新  
+						mui.fire(list, 'refresh');
+						//返回true，继续页面关闭逻辑  
+						return true;
+					}
+				});
+				// 获取编辑农事的数据
+				mui.plusReady(function() {
+					var self = plus.webview.currentWebview();
+					var titleView = self.getNavigationbar();
+					if(!titleView) {
+						titleView = plus.webview.getLaunchWebview().getNavigationbar();
+					}
+					//开启回弹
+					self.setStyle({
+						bounce: "vertical",
+						bounceBackground: "#ffffff",
+					});
+					// 绘制按钮
+					titleView.drawText('保存', {
+						top: "10px",
+						right: "10px",
+						height: "24px"
+					}, {
+						align: 'right',
+						color: '#fff',
+						size: '17px'
+					});
+					// 是否拦截View控件的触屏事件
+					titleView.interceptTouchEvent(true);
+					titleView.addEventListener("click", function(e) {
+						var x = e.clientX;
+						if(x > 300) {
+							vm.save();
+						}
+					})
+					// 获取参数
+					if(self.farmingId) {
+						vm.farmingId = self.farmingId;
+						vm.isAdd = false;
+						vm.title = "编辑农事"
+						vm.data.farmingId = self.farmingId;
+						getDataList(APIURL + 'business/farming/get', {
+							farmingId: vm.farmingId,
+							enterpriseId: vm.loginUserInfo.enterpriseId
+						}, function(d) {
+							if(d && d.aaData) {
+								// 赋值农事类型  
+								for(var i in vm.typeArr) {
+									if(vm.typeArr[i].value == d.aaData.type) {
+										vm.paramObj.type = d.aaData.type;
+										document.getElementById('farmingType').innerHTML = vm.typeArr[i].text;
+									}
+								}
+								// 赋值区域
+								for(var i in vm.AcreList) {
+									if(vm.AcreList[i].value == d.aaData.plantId) {
+										vm.data.plantId = d.aaData.plantId;
+										document.getElementById('plantGroupResult').innerHTML = vm.AcreList[i].text;
+									}
+								}
+								// 赋值操作内容
+								for(var i in vm.DictionaryList) {
+									if(vm.DictionaryList[i].value == d.aaData.dictionaryId) {
+										vm.data.dictionaryId = d.aaData.dictionaryId;
+										document.getElementById('dictionaryResult').innerHTML = vm.DictionaryList[i].text;
+									}
+								}
+								// 赋值操作时间
+								vm.data.operatingDate = d.aaData.operatingDate.split(' ')[0];
+								// 赋值农机
+								for(var i in vm.EquipmentList) {
+									if(vm.EquipmentList[i].value == d.aaData.equipmentId) {
+										vm.data.equipmentId = d.aaData.equipmentId;
+										document.getElementById('equipmentResult').innerHTML = vm.EquipmentList[i].text;
+									}
+								}
+								// 赋值操作人
+								getDataList(APIURL + 'business/farmingOperator/list', {
+									farmingId: vm.farmingId,
+									enterpriseId: vm.loginUserInfo.enterpriseId
+								}, function(res) {
+									for(var j in res.aaData) {
+										var obj = {
+											nickName: res.aaData[j].username,
+											userId: res.aaData[j].userId
+										}
+										vm.users.push(obj);
+									}
+								})
+								// 赋值工时
+								vm.data.workingHours = d.aaData.workingHours;
+								// 赋值其他成本
+								vm.data.otherCost = d.aaData.otherCost;
+								// 赋值农事要求
+								if(d.aaData.requirements != 'undefined') {
+									vm.data.requirements = d.aaData.requirements;
+								} else {
+									vm.data.requirements = ''
+								}
+								// 赋值备注
+								if(d.aaData.remark != 'undefined') {
+									vm.data.remark = d.aaData.remark;
+								} else {
+									vm.data.remark = ''
+								}
+								// 赋值是否重复跟截止时间
+								vm.data.isRepeat = d.aaData.isRepeat
+								if(d.aaData.deadline) {
+									vm.data.deadline = d.aaData.deadline.split(' ')[0]
+								}
+								vm.data.intervalDay = d.aaData.intervalDay
+
+								// 获取农事投入品信息
+								getDataList(APIURL + 'business/farmingMaterial/getMaterial', {
+									farmingId: vm.farmingId,
+									enterpriseId: vm.loginUserInfo.enterpriseId
+								}, function(d) {
+									if(d && d.state === 0) {
+										if(d.aaData) {
+											// 赋值投放品
+											for(var i in d.aaData) {
+												var obj = {
+													id: i,
+													name: d.aaData[i].name, //投放物名称
+													usage: d.aaData[i].usage, //使用量
+													packUnit: d.aaData[i].packUnit, //单位
+													cost: d.aaData[i].cost, //成本
+													materielId: d.aaData[i].materielId
+												}
+												vm.meterial.push(obj);
+											}
+										}
+									}
+								});
+								// 获取农事图片
+								getDataList(APIURL + 'business/attachment/list	', {
+									identification: vm.farmingId,
+									enterpriseId: vm.loginUserInfo.enterpriseId
+								}, function(d) {
+									if(d && d.state === 0) {
+										if(d.aaData) {
+											for(var i in d.aaData) {
+												d.aaData[i].showPath = IMGURL + d.aaData[i].path + '&image/jpeg'
+											}
+											vm.attachmentImgs = d.aaData;
+										}
+									}
+								})
+							}
+						})
+					}
+				})
+				// 获取选择收件人数组
+				window.addEventListener('getUsers', function(e) {
+					for(var i in e.detail.users) {
+						vm.users.push(e.detail.users[i])
+					}
+				})
+				// 获取选择投放品
+				window.addEventListener('doit', function(e) {
+					for(var i in e.detail.meterialStr) {
+						vm.meterial.push(e.detail.meterialStr[i]);
+					}
+				});
+				// 是否重复操作
+				document.getElementById("isRepeat").addEventListener("toggle", function(event) {
+					if(event.detail.isActive) {
+						vm.data.isRepeat = 1;
+						
+					} else {
+						vm.data.isRepeat = 0;
+						vm.data.intervalDay = 1;
+						vm.data.deadline = vm.GetDateStr();
+					}
+				})
+			},
+			methods: {
+				// 保存
+				save: function() {
+					var vm = this;
+
+					// 计算农资总成本
+					vm.data.totalCost = 0;
+					for(var i in vm.meterial) {
+						vm.data.totalCost += vm.meterial[i].usage * vm.meterial[i].cost
+					}
+
+					// 封装图片参数
+					for(var i in vm.attachmentImgs) {
+						vm.attachmentId.push(vm.attachmentImgs[i].attachmentId);
+					}
+					vm.paramObj.attachmentId = JSON.stringify(vm.attachmentId);
+					vm.paramObj.meterial = JSON.stringify(vm.meterial);
+
+					// 封装操作人参数
+					var userids = [];
+					for(var i in vm.users) {
+						userids.push(vm.users[i].userId);
+					}
+					vm.data.operationUserId = JSON.stringify(userids)
+					// 判断是新增提交还是修改
+					if(vm.isAdd) {
+						vm.saveUrl = APIURL + 'business/farming/create';
+						vm.paramObj.data = JSON.stringify(vm.data);
+					} else {
+						vm.saveUrl = APIURL + 'business/farming/update';
+						// 修改提交将data作为参数
+						vm.data.meterial = vm.paramObj.meterial;
+						vm.data.attachmentId = vm.paramObj.attachmentId;
+						vm.data.userId = vm.paramObj.userId;
+						vm.data.username = vm.paramObj.username;
+						vm.data.enterpriseId = vm.paramObj.enterpriseId;
+						vm.data.type = vm.paramObj.type;
+						vm.data.state = vm.paramObj.state;
+						vm.data.operationUserId = vm.data.operationUserId;
+					}
+
+					// 必填字段
+					var checkArr = ['区域:plantId', '操作内容:dictionaryId', '操作时间:operatingDate:', '农机:equipmentId', '操作人:operationUserId', '农事要求:requirements', '工时:workingHours'];
+					if(vm.paramObj.type === '') {
+						mui.alert('请填写农事类型');
+						vm.check = false;
+						return false;
+					} else {
+						for(var i in checkArr) {
+							if(i == 0 && vm.paramObj[checkArr[i].split(':')[1]] == '') {
+								mui.alert('请填写' + checkArr[i].split(':')[0]);
+							} else {
+								if(vm.data[checkArr[i].split(':')[1]] == '' || vm.data[checkArr[i].split(':')[1]] == '请选择(必填) ') {
+									mui.alert('请填写' + checkArr[i].split(':')[0]);
+									vm.check = false;
+									return false;
+								} else {
+									vm.check = true;
+								}
+							}
+						}
+					}
+
+					// 提交
+					if(vm.check) {
+						var param;
+						if(vm.isAdd) {
+							param = vm.paramObj;
+							if(JSON.parse(JSON.parse(param.data).operationUserId).length == 0) {
+								mui.alert('请添加操作人！');
+								return false;
+							}
+						} else {
+							param = vm.data
+						};
+
+						// 保存接口
+						getDataList(vm.saveUrl, param, function(d) {
+							if(d && d.state === 0) {
+								mui.toast('保存成功');
+								var view = plus.webview.getWebviewById('base_main');
+								mui.fire(view, 'doit', {
+									tab: 'farmingTab'
+								});
+								mui.back();
+							} else {
+								mui.toast('保存失败');
+							}
+						})
+					}
+				},
+				/**
+				 * 农事类型选择
+				 */
+				selectFarmingType: function() {
+					var vm = this;
+					var userPicker = new mui.PopPicker();
+					var userResult = document.getElementById('farmingType');
+					userPicker.show(function(items) {
+						userResult.innerText = items[0].text;
+						vm.paramObj.type = items[0].value;
+						vm.paramObj.state = items[0].value;
+						console.log(vm.paramObj.type)
+
+						vm.data.operatingDate = '';
+						vm.data.deadline = '';
+
+					});
+					userPicker.setData(vm.typeArr);
+				},
+				/**
+				 * 区域选择
+				 */
+				selectGroupList: function() {
+					var vm = this;
+					if(vm.AcreList.length == 0) {
+						mui.alert('暂无可选区域');
+						return false;
+					}
+					var vm = this;
+					var userPicker = new mui.PopPicker();
+					var userResult = document.getElementById('plantGroupResult');
+					userPicker.show(function(items) {
+						userResult.innerText = items[0].text;
+						vm.data.plantId = [items[0].value];
+						console.log(vm.data.plantId)
+					});
+					userPicker.setData(vm.AcreList);
+				},
+				/**
+				 * 操作内容选择
+				 */
+				selectDictionaryList: function() {
+					var vm = this;
+					var userPicker = new mui.PopPicker();
+					var userResult = document.getElementById('dictionaryResult');
+					userPicker.show(function(items) {
+						userResult.innerText = items[0].text;
+						vm.data.dictionaryId = items[0].value;
+						console.log(vm.data.dictionaryId)
+					});
+					userPicker.setData(vm.DictionaryList);
+				},
+				/**
+				 * 农机选择
+				 */
+				selectEquipmentList: function() {
+					var vm = this;
+					var arr = [];
+					var userPicker = new mui.PopPicker();
+					var userResult = document.getElementById('equipmentResult');
+					userPicker.show(function(items) {
+						userResult.innerText = items[0].text;
+						vm.data.equipmentId = items[0].value;
+						console.log(vm.data.equipmentId)
+					});
+					userPicker.setData(vm.EquipmentList);
+				},
+				/**
+				 * 操作人员选择
+				 */
+				selectUserList: function() {
+					var vm = this;
+					mui.openWindow({
+						url: 'index_message_new_addUser.html',
+						id: 'index_message_new_addUser.html',
+						// 如果已经选择了的收件人到在添加过滤
+						extras: {
+							selectUsers: vm.users,
+							type: 'famingAdd'
+						}
+					})
+				},
+				/**
+				 * 跳转添加投放品页面
+				 */
+				toFarmingMateriel: function() {
+					var vm = this;
+					mui.openWindow({
+						url: 'base_farming_materiel.html',
+						id: 'base_farming_materiel',
+						extras: {
+							meterial: vm.meterial
+						}
+					})
+				},
+				/**
+				 * 删除已选择的投放品
+				 * @param {Number} id
+				 */
+				deleteMateriel: function(id) {
+					for(var i in this.meterial) {
+						if(this.meterial[i].id == id) {
+							this.meterial.splice(i, 1);
+						}
+					}
+				},
+				/**
+				 * 选择日期
+				 * @param {Object} id
+				 */
+				selectQueryDate: function(id) {
+					var vm = this;
+					//首先获取到当前的年月日
+					var cdate = new Date();
+					var s = cdate.getSeconds();
+					var year = cdate.getFullYear();
+					var month = cdate.getMonth() + 1;
+					var day = cdate.getDate();
+					var h = cdate.getHours(); //获取小时
+					var m = cdate.getMinutes(); //获取分钟
+					var s = cdate.getSeconds(); //获取秒
+					if(s < 10) {
+						s = '0' + s
+					}
+					if(m < 10) {
+						m = '0' + m
+					}
+
+					// 判断是计划还是记录，计划的时间不能小于当前时间，记录不能大于当前时间
+					var dtoption = {}
+					if(vm.paramObj.type == 0) { //计划
+						dtoption = {
+							type: 'date',
+							beginYear: year,
+							beginMonth: month,
+							beginDay: day,
+						}
+					} else {
+						dtoption = {
+							type: 'date',
+							endYear: year,
+							endMonth: month,
+							endDay: day,
+						}
+					}
+					// 选择截止时间操作
+					if(id == 'deadline') {
+						if(vm.data.operatingDate) {
+							dtoption.beginDay ? dtoption.beginDay = day : dtoption.endDay = day;
+						} else {
+							mui.alert('请选择操作时间！');
+							return false
+						}
+					}
+
+					var dtPicker = new mui.DtPicker(dtoption);
+					dtPicker.show(function(rs) {
+						vm.data[id] = rs.text;
+					})
+				},
+				/**
+				 * 获取区域选择列表
+				 */
+				getAcreList: function() {
+					var vm = this;
+					getDataList(APIURL + 'business/plant/plantGroupList', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								var options = d.aaData.currentPlant.options;
+								var planPlantOptions = d.aaData.planPlant.options;
+								// 当前种植options
+								for(var i in options) {
+									var obj = {
+										value: options[i].plantId,
+										text: options[i].acreName + '-' + options[i].templeteName + '-' + options[i].varietiesName
+									};
+									vm.AcreList.push(obj)
+								}
+								// 计划种植options
+								for(var i in planPlantOptions) {
+									var obj = {
+										value: planPlantOptions[i].plantId,
+										text: planPlantOptions[i].acreName + '-' + planPlantOptions[i].templeteName + '-' + planPlantOptions[i].varietiesName
+									};
+									vm.AcreList.push(obj)
+								}
+
+							}
+						}
+					})
+				},
+				/**
+				 * 获取操作内容选择列表
+				 */
+				getDictionaryList: function() {
+					var vm = this;
+					getDataList(APIURL + 'business/dataDictionary/list', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+						parent: 65
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								for(var i in d.aaData) {
+									var obj = {
+										value: d.aaData[i].dictionaryId,
+										text: d.aaData[i].name
+									};
+									vm.DictionaryList.push(obj)
+								}
+							}
+						}
+					})
+				},
+				/**
+				 * 获取农机选择列表
+				 */
+				getEquipmentList: function() {
+					var vm = this;
+					getDataList(APIURL + 'business/equipment/list', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								for(var i in d.aaData) {
+									var obj = {
+										value: d.aaData[i].equipmentId,
+										text: d.aaData[i].name
+									};
+									vm.EquipmentList.push(obj)
+								}
+							}
+						}
+					})
+				},
+				/**
+				 * 获取操作人列表
+				 */
+				getOperationUserList: function() {
+					var vm = this;
+					getDataList(APIURL + '/business/user/list', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								for(var i in d.aaData) {
+									var obj = {
+										value: d.aaData[i].userId,
+										text: d.aaData[i].nickName
+									};
+									vm.operationUserList.push(obj)
+								}
+							}
+						}
+					})
+				},
+				/**
+				 * 选择上传图片
+				 */
+				selectPic: function() {
+					var vm = this;
+					var btnArray = [{
+						title: "拍照或录像"
+					}, {
+						title: "选取现有的"
+					}];
+					plus.nativeUI.actionSheet({
+						title: "选择照片",
+						cancel: "取消",
+						buttons: btnArray
+					}, function(e) {
+						var index = e.index;
+						switch(index) {
+							case 0:
+								console.log('取消');
+								break;
+							case 1:
+								vm.byCamera();
+								break;
+							case 2:
+								vm.byAlbum();
+								break;
+						}
+					});
+				},
+				/**
+				 * 调用相机拍照
+				 */
+				byCamera: function() {
+					var vm = this;
+					var cmr = plus.camera.getCamera();
+					cmr.captureImage(function(path) {
+						// 保存到系统相册
+						plus.gallery.save(path, function() {
+							console.log('保存成功');
+						}, function(e) {
+							console.log('保存失败: ' + JSON.stringify(e));
+						});
+						// 压缩图片上传上传
+						vm.compressImage(path)
+					}, function(e) {
+						console.log('失败：' + e.message)
+					}, {
+						filename: '_doc/camera/',
+						index: 1
+					});
+				},
+				/**
+				 * 从相册中选取
+				 */
+				byAlbum: function() {
+					var lfs = null; // 保留上次选择图片列表
+					var vm = this;
+					plus.gallery.pick(function(e) {
+						console.log(JSON.stringify(e))
+						// 压缩图片上传上传
+						vm.compressImage(e)
+					}, function(e) {
+						mui.toast('取消选择图片');
+					}, {
+						filter: 'image',
+					});
+				},
+				// 上传文件
+				upload: function(path) {
+					var vm = this;
+					var task = plus.uploader.createUpload(vm.uploadUrl, {
+						method: "POST"
+					}, function(t, status) { //上传完成
+						if(status == 200) {
+							var d = JSON.parse(t.responseText)
+							console.log("上传成功：" + t.responseText);
+							if(d.state == 0 && d.aaData) {
+								vm.uploadResult = d.aaData;
+								var obj = {
+									attachmentId: vm.uploadResult.attachmentId,
+									showPath: IMGURL + vm.uploadResult.path + '&image/jpeg'
+								}
+								vm.attachmentImgs.push(obj)
+							}
+						} else {
+							console.log("上传失败：" + status);
+						}
+					});
+					task.addData("type", "farming");
+					task.addData("enterpriseId", vm.loginUserInfo.enterpriseId);
+					task.addData("identification", vm.farmingId);
+
+					task.addFile(path, {
+						key: 'file'
+					});
+					task.start();
+				},
+				/**
+				 * 删除已选中的照片
+				 */
+				deleteimg: function(index) {
+					console.log(this.attachmentImgs[index].attachmentId)
+					var vm = this;
+					var msg = '确认删除?';
+					var title = '提示';
+					var btnValue = ['确认', '取消'];
+					mui.confirm(msg, title, btnValue, function(e) {
+						if(e.index == 0) {
+							getDataList(APIURL + 'business/attachment/delete', {
+								attachmentId: vm.attachmentImgs[index].attachmentId,
+							}, function(d) {
+								console.log(JSON.stringify(d))
+								if(d && d.state === 0) {
+									// 先删除列表数据中的
+									vm.attachmentImgs.splice(index, 1)
+									mui.toast('删除成功');
+								} else {
+									mui.toast('删除失败');
+								}
+							})
+						}
+					})
+				},
+				/**
+				 * 压缩图片
+				 */
+				compressImage: function(path) {
+					plus.zip.compressImage({
+						src: path,
+						dst: path,
+						overwrite: true,
+						quality: 20
+					}, function() {
+						console.log("Compress success!");
+						vm.upload(path)
+					}, function(error) {
+						console.log("Compress error!");
+					});
+				},
+				/**
+				 * 验证输入大于0数字
+				 */
+				isNumber: function(id) {
+					var vm = this;
+					var reg = /^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/
+					if(!reg.test(vm.data[id])) {
+						mui.alert('只能输入数字，请重新输入！');
+						if(id == 'otherCost' || id == 'workingHours') {
+							vm.data.otherCost = 0;
+						}
+						if(id == 'workingHours') {
+							vm.data.workingHours = 1;
+						}
+						if(id == 'intervalDay') {
+							vm.data.intervalDay = 1;
+						}
+					}
+				},
+				/**
+				 * 移除收件人
+				 */
+				delUser: function(id) {
+					for(var i in this.users) {
+						if(this.users[i].userId == id) {
+							this.users.splice(i, 1)
+						}
+					}
+				},
+				GetDateStr: function() {
+					var dd = new Date();
+					dd.setDate(dd.getDate()); //获取AddDayCount天后的日期
+					var y = dd.getFullYear();
+					var m = dd.getMonth() + 1; //获取当前月份的日期
+					var d = dd.getDate();
+					return y + "-" + m + "-" + d;
+				}
+			}
+		});
+	</script>
+
+</html>

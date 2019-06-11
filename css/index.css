@@ -1,0 +1,44 @@
+
+/*首页*/
+.mui-bar-tab .mui-tab-item .tabicon-home{
+	background: url("../images/home_tabicon_home.png");
+	background-size: 100%;
+}
+.mui-bar-tab .mui-tab-item.mui-active .tabicon-home{
+	background: url("../images/home_tabicon_home_a.png");
+	background-size: 100%;
+}
+/*订单*/
+.mui-bar-tab .mui-tab-item .tabicon-dingd{
+	background: url("../images/home_tabicon_dingd.png");
+	background-size: 100%;
+}
+.mui-bar-tab .mui-tab-item.mui-active .tabicon-dingd{
+	background: url("../images/home_tabicon_dingd_a.png");
+	background-size: 100%;
+}
+/*加号*/
+.mui-bar-tab .mui-tab-item .tabicon-add{
+	width: 46px;
+	height: 40px;;
+	background: url("../images/home_icon_add.png") no-repeat;
+	background-size: 100%;
+}
+/*消息*/
+.mui-bar-tab .mui-tab-item .tabicon-message{
+	background: url("../images/home_tabicon_message.png");
+	background-size: 100%;
+}
+.mui-bar-tab .mui-tab-item.mui-active .tabicon-message{
+	background: url("../images/home_tabicon_message_a.png");
+	background-size: 100%;
+}
+/*我的*/
+.mui-bar-tab .mui-tab-item .tabicon-mine{
+	background: url("../images/home_tabicon_mine.png");
+	background-size: 100%;
+}
+.mui-bar-tab .mui-tab-item.mui-active .tabicon-mine{
+	background: url("../images/home_tabicon_mine_a.png");
+	background-size: 100%;
+}

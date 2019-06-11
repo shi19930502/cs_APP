@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+		<link rel="stylesheet" href="../css/index.css">
+		<style type="text/css">
+			.mui-content {
+				padding-top: 50px;
+			}
+			.nav-list {
+				height: 100%;
+				z-index: 999;
+				position: fixed;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				background: #eeeeee;
+				padding-top: 80px;
+			}
+			.position-info {
+				padding: 15px;
+			}
+			.time {
+				display: flex;
+				align-items: center;
+			}
+			.day {
+				font-size: 50px;
+				margin-right: 20px;
+			}
+			.content-list {
+				text-align: center;
+				padding: 45px 0;
+				position: absolute;
+				bottom: 80px;
+			}
+			.content-list h5 {
+				color: #4C4C4C;
+				font-weight: bold;
+			}
+			.content-list .mui-row {
+				margin-bottom: 10px;
+			}
+			.banner {
+				width: 100%;
+				height: 107px;
+				background: #70C93E;
+				padding: 0 10px;
+			}
+			.banner p {
+				margin-bottom: 0px;
+				color: #fff;
+			}
+			.banner .temperature {
+				height: 100%;
+				line-height: 107px;
+				font-size: 70px;
+				color: #fff;
+				font-weight: bolder;
+			}
+			.banner .left div:nth-child(2) {
+				padding: 20px 8px;
+			}
+			.banner .right {
+				padding-top: 38px;
+			}
+			.banner .right p span {
+				color: #7da7fa;
+			}
+			.banner .right .icon_zhuanhuan {
+				width: 42px;
+				height: 42px;
+				background: url("../images/home_icon_zhuanhuan.png");
+				background-size: 100%;
+				margin-right: 10px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div class="mui-content">
+				<div class="nav-list">
+					<div class="mui-row position-info">
+						<div class="mui-col-xs-6">
+							<div class="time">
+								<div class="day">{{day}}</div>
+								<div>
+									<h5>{{week}}</h5>
+									<h5>{{month + '/' + year}}</h5>
+								</div>
+							</div>
+							<h5 style="margin-top: 10px;">{{city}}</h5>
+						</div>
+						<div class="mui-col-xs-6" style="text-align: right;" @tap="toBadsDetails">
+							<img :src="baseFaceImg" height="88px" width="120px" />
+							<p>{{baseName}}</p>
+						</div>
+					</div>
+					<div class="content-list">
+						<div class="mui-row">
+							<div class="mui-col-sm-3 mui-col-xs-3 nav-item" link="base_farming" titleText="农事">
+								<img src="../images/zhu_icon_ns.png" width="50%" />
+								<h5>农事</h5>
+							</div>
+							<div class="mui-col-sm-3 mui-col-xs-3 nav-item" link="testing_list" titleText="检测">
+								<img src="../images/zhu_icon_jiance.png" width="50%" />
+								<h5>检测</h5>
+							</div>
+							<div class="mui-col-sm-3 mui-col-xs-3 nav-item" link="recovery_list" titleText="采收">
+								<img src="../images/zhu_icon_cs.png" width="50%" />
+								<h5>采收</h5>
+							</div>
+							<div class="mui-col-sm-3 mui-col-xs-3 nav-item" link="machining_list">
+								<img src="../images/zhu_icon_cjg.png" width="50%" />
+								<h5>初加工</h5>
+							</div>
+							<div class="mui-col-sm-3 mui-col-xs-3 nav-item" link="machining_packing" style="margin-top: 20px;">
+								<img src="../images/zhu_icon_baoz.png" width="50%" />
+								<h5>包装</h5>
+							</div>
+						</div>
+					</div>
+					<div class="nav-list-bottom" style="height: 50px;line-height: 53px;position: absolute;bottom: 0;text-align: center;width: 100%;border-top: 1px solid #cccccc;background: #ffffff;">
+						<img src="../images/zhu_icon_close.png" style="width: 18px;height: 18px;" class="close-nav-list" />
+					</div>
+				</div>
+			</div>
+		</script>
+
+		<script src="../libs/js/mui.min.js"></script>
+		<script src="../libs/js/vue.min.js"></script>
+		<script src="../js/comm.js"></script>
+		<script type="text/javascript">
+			var vm = new Vue({
+				el: '#app',
+				template: indexTpl,
+				data: function() {
+					return {
+						city: '',
+						year: '',
+						month: '',
+						day: '',
+						week: '',
+						baseName: '',
+						baseFaceImg: '../images/often.png',
+						baseInfo: {}
+					}
+				},
+				mounted: function() {
+					var vm = this;
+					// 本地获取基地信息
+					var baseInfo = JSON.parse(localStorage.getItem('planBaseData'));
+					vm.baseInfo = baseInfo;
+					vm.baseName = baseInfo.name;
+					if(baseInfo.photopathlist) {
+						vm.baseFaceImg = IMGURL + baseInfo.photopathlist[0].path + '&image/jpeg';
+					}
+					mui.plusReady(function() {
+						vm.getDate();
+						vm.getPos();
+						mui('.content-list').on('tap', '.nav-item', function(e) {
+							var link = this.getAttribute('link');
+							var titleText = this.getAttribute('titleText');
+							if(link == 'machining_list' || link == 'machining_packing') {
+								mui.openWindow({
+									url: link + '.html',
+									id: link
+								})
+							} else {
+								mui.openWindow({
+									url: link + '.html',
+									id: link,
+									styles: {
+										titleNView: { 
+											titleText: titleText,
+											backgroundColor: "#70C93E",
+											titleColor: "#fff",
+											autoBackButton: true,
+											titleSize: "18px",
+										}
+									}
+								})
+							}
+						});
+						mui('.nav-list-bottom').on('tap', '.close-nav-list', function(e) {
+							mui.back()
+						});
+					});
+				},
+				methods: {
+					/**
+					 * 查看基地详情
+					 */
+					toBadsDetails: function() {
+						mui.openWindow({
+							url: 'base_details.html',
+							id: 'base_details',
+							extras: {
+								baseInfo: vm.baseInfo
+							},
+							styles: {
+								titleNView: { 
+									titleText: "基地详情",
+									backgroundColor: "#70C93E",
+									titleColor: "#fff",
+									autoBackButton: true,
+									titleSize: "18px",
+								}
+							}
+						})
+					},
+					/**
+					 * 获取位置信息
+					 */
+					getPos: function() {
+						plus.geolocation.getCurrentPosition(function(p) {
+							vm.city = p.address.province + p.address.city;
+						}, function(e) {
+							console.log('Geolocation error: ' + e.message);
+						});
+					},
+					/**
+					 * 获取日期
+					 */
+					getDate: function() {
+						var vm = this;
+						var cdate = new Date();
+						vm.year = cdate.getFullYear();
+						vm.month = cdate.getMonth() + 1;
+						vm.day = cdate.getDate();
+						if(vm.day < 10) {
+							vm.day = '0' + vm.day
+						}
+						if(vm.month < 10) {
+							vm.month = '0' + vm.month
+						}
+						switch(cdate.getDay()) {
+							case 1:
+								vm.week = '星期一'
+								break;
+							case 2:
+								vm.week = '星期二'
+								break;
+							case 3:
+								vm.week = '星期三'
+								break;
+							case 4:
+								vm.week = '星期四'
+								break;
+							case 5:
+								vm.week = '星期五'
+								break;
+							case 6:
+								vm.week = '星期六'
+								break;
+							default:
+								vm.week = '星期天'
+								break;
+						}
+					}
+				}
+			});
+		</script>
+	</body>
+
+</html>

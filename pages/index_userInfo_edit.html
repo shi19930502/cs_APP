@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../libs/css/mui.picker.min.css" />
+		<link rel="stylesheet" href="../css/comm.css">
+		<style type="text/css">
+			.selectedimg {
+				padding: 15px 15px 5px;
+			}
+			.selectedimg div {
+				text-align: center;
+				margin-bottom: 10px;
+			}
+			.selectedimg div img {
+				width: 100px;
+				height: 100px;
+				border-radius: 50px;
+			}
+			.greenbg {
+				background: #70C93E;
+				margin-bottom: 0;
+				margin-top: -1px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<div class="mui-content">
+					<div class="mui-input-group mbtenpx greenbg">
+						<!--选择图片-->
+						<div class="mui-row selectedimg" v-show="1==1">
+							<div class="mui-col-xs-12">
+								<span @tap="selectHeadImg"><img :src="headPortrait" /></span>
+							</div>
+						</div>
+					</div>
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row">
+							<label>姓名</label>
+							<input v-model="paramObj.nickName" type="text">
+						</div>
+						<div class="mui-input-row">
+							<label>职位</label>
+							<span>{{positionName}}</span>
+						</div>
+						<div class="mui-input-row">
+							<a class="mui-navigate-right"></a>
+							<label>性别</label>
+							<span class="fr select-text" @tap="selectSex">{{sexText}}</span>
+						</div>
+						<div class="mui-input-row">
+							<a class="mui-navigate-right" @tap="datePicker"></a>
+							<label>出生年月</label>
+							<span class="fr select-text" @tap="datePicker">{{paramObj.birthDate}}</span>
+						</div>
+					</div>
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row">
+							<label>电子邮箱</label>
+							<input v-model="paramObj.email" type="text"  maxlength="50" toast="电子邮箱">
+						</div>
+						<div class="mui-input-row">
+							<label>手机号码</label>
+							<input v-model="paramObj.phone" type="text"  maxlength ="11" toast="手机号码">
+						</div>
+						<div class="mui-input-row">
+							<label>QQ</label>
+							<input v-model="paramObj.qq" type="text"  maxlength="20" toast="QQ">
+						</div>
+						<div class="mui-input-row">
+							<label>地址</label>
+							<input v-model="paramObj.address" type="text"  maxlength="100" toast="地址">
+						</div>
+					</div>
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row">
+							<label>荣誉</label>
+							<input v-model="paramObj.honor" type="text"  maxlength="2000" toast="荣誉"> 
+						</div>
+						<div class="mui-input-row textarea-row">
+							<label>农务感言</label>
+							<textarea v-model="paramObj.recollections" maxlength="500" toast="农务感言"></textarea>
+						</div>
+						<div class="mui-input-row textarea-row">
+							<label>实践经验</label>
+							<textarea v-model="paramObj.experience" maxlength="500" toast="实践经验"></textarea>
+						</div>
+						<div class="mui-input-row">
+							<label>学历</label>
+							<input v-model="paramObj.education" type="text" maxlength="20" toast="学历">
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>
+
+		<script src="../libs/js/mui.min.js"></script>
+		<script src="../libs/js/mui.picker.min.js"></script>
+		<script src="../libs/js/vue.min.js"></script>
+		<script src="../js/comm.js"></script>
+
+		<script>
+			var vm = new Vue({
+				el: '#app',
+				template: indexTpl,
+				directives: {
+					inputmax: {
+						update: function(el, binding) {
+							var text = el.getAttribute('toast')
+							if(el.value.length > binding.value) {
+//								mui.toast(text + '不能超过' + binding.value + '个字符')
+								el.value = el.value.slice(0, binding.value);
+							}
+						}
+					}
+				},
+
+				data: function() {
+					return {
+						loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+						sexList: [{
+							value: 0,
+							text: '女'
+						}, {
+							value: 1,
+							text: '男'
+						}],
+						sexText: '请选择(必填)',
+						// 职位
+						positionName: '',
+						// 头像上传路径
+						uploadUrl: APIURL + 'business/attachment/createupload',
+						// 上传成功返回对象
+						uploadResponse: {},
+						// 显示头像路径
+						headPortrait: '',
+						paramObj: {
+							userId: '',
+							nickName: '',
+							headPortrait: '',
+							birthDate: '',
+							sex: '',
+							email: '',
+							phone: '',
+							qq: '',
+							address: '',
+							education: '',
+							remark: '',
+							honor: '',
+							recollections: '',
+							experience: '',
+							enterpriseId: '',
+						}
+					}
+				},
+				mounted: function() {
+					var vm = this;
+					mui.init({
+						beforeback: function() {
+							//获得列表界面的webview  
+							var list = plus.webview.currentWebview().opener();
+							//触发列表界面的自定义事件（refresh）,从而进行数据刷新  
+							mui.fire(list, 'refresh');
+							//返回true，继续页面关闭逻辑  
+							return true;
+						}
+					});
+					mui.plusReady(function() {
+						var self = plus.webview.currentWebview();
+						if(self.UserInfoDetails) {
+							// 赋值保存参数
+							vm.paramObj.userId = self.UserInfoDetails.userId
+							vm.paramObj.nickName = self.UserInfoDetails.nickName || ''
+							vm.paramObj.birthDate = self.UserInfoDetails.birthDate || ''
+							vm.paramObj.sex = self.UserInfoDetails.sex || ''
+							vm.paramObj.email = self.UserInfoDetails.email || ''
+							vm.paramObj.phone = self.UserInfoDetails.phone || ''
+							vm.paramObj.qq = self.UserInfoDetails.qq || ''
+							vm.paramObj.address = self.UserInfoDetails.address || ''
+							vm.paramObj.education = self.UserInfoDetails.education || ''
+							vm.paramObj.remark = self.UserInfoDetails.remark || ''
+							vm.paramObj.honor = self.UserInfoDetails.honor || ''
+							vm.paramObj.recollections = self.UserInfoDetails.recollections || ''
+							vm.paramObj.experience = self.UserInfoDetails.experience || ''
+							vm.paramObj.enterpriseId = self.UserInfoDetails.enterpriseId || ''
+							vm.paramObj.headPortrait = self.UserInfoDetails.headPortrait || ''
+
+							// 用于显示参数
+							vm.headPortrait = self.UserInfoDetails.headImg
+							vm.positionName = self.UserInfoDetails.positionName
+							vm.paramObj.sex == 0 ? vm.sexText = '女' : vm.paramObj.sex == 1 ? vm.sexText = '男' : vm.sexText = '保密'
+						};
+
+						var titleView = self.getNavigationbar();
+						if(!titleView) {
+							titleView = plus.webview.getLaunchWebview().getNavigationbar();
+						}
+						//开启回弹
+						self.setStyle({
+							bounce: "vertical",
+							bounceBackground: "#ffffff",
+						});
+						// 绘制保存按钮
+						titleView.drawText('保存', {
+							top: "10px",
+							right: "10px",
+							height: "24px"
+						}, {
+							align: 'right',
+							color: '#fff',
+							size: '17px'
+						});
+						// 是否拦截View控件的触屏事件
+						titleView.interceptTouchEvent(true);
+						// 下一步点击事件
+						titleView.addEventListener("click", function(e) {
+							var x = e.clientX;
+							if(x > 300) {
+								vm.save();
+							}
+						})
+					})
+				},
+				methods: {
+					save: function() {
+						var vm = this
+						// 验证姓名/昵称不能为空
+						if(this.paramObj.nickName == '' || trim(this.paramObj.nickName) == '') {
+							mui.alert('姓名/昵称不能为空！');
+							return false;
+						}
+						// 验证姓名输入长度
+						if(this.paramObj.nickName.length > 15) {
+							mui.alert('姓名/昵称不能超过15个字符，请重新输入！');
+							return false;
+						}
+						// 验证手机号码不能为空
+						if(this.paramObj.phone == '' || trim(this.paramObj.phone) == '') {
+							mui.alert('手机号码不能为空！');
+							return false;
+						}
+						// 掉接口保存
+						getDataList(APIURL + 'business/user/updateInfo', this.paramObj, function(d) {
+							vm.loginUserInfo.headPortrait = vm.paramObj.headPortrait
+							vm.loginUserInfo.username = vm.paramObj.nickName
+							var newUserInfo = vm.loginUserInfo
+							if(d && d.state === 0) {
+								localStorage.setItem('loginUserInfo', JSON.stringify(newUserInfo))
+								mui.toast('保存成功');
+								mui.back();
+							} else {
+								mui.toast('保存失败');
+							}
+						})
+					},
+					/** 
+					 * 选择性别
+					 */
+					selectSex: function() {
+						var vm = this;
+						var userPicker = new mui.PopPicker();
+						userPicker.show(function(items) {
+							vm.paramObj.sex = items[0].value;
+							vm.sexText = items[0].text;
+						});
+						userPicker.setData(vm.sexList);
+					},
+					/**
+					 * 时间选择器
+					 * @param {Object} type
+					 */
+					datePicker: function(type) {
+						var vm = this;
+						var cdate = new Date();
+						var year = cdate.getFullYear();
+						var dtPicker = new mui.DtPicker({
+							type: 'date',
+							beginDate: new Date(year - 100, 01, 01)
+						});
+						dtPicker.show(function(rs) {
+							vm.paramObj.birthDate = rs.text;
+						})
+					},
+					/**
+					 * 选择头像
+					 */
+					selectHeadImg: function() {
+						var vm = this;
+						var btnArray = [{
+							title: "拍照"
+						}, {
+							title: "选取现有的"
+						}];
+						plus.nativeUI.actionSheet({
+							title: "选择照片",
+							cancel: "取消",
+							buttons: btnArray
+						}, function(e) {
+							var index = e.index;
+							switch(index) {
+								case 0:
+									console.log('取消');
+									break;
+								case 1:
+									vm.byCamera();
+									break;
+								case 2:
+									vm.byAlbum();
+									break;
+							}
+						});
+					},
+					/**
+					 * 调用相机拍照
+					 */
+					byCamera: function() {
+						var vm = this;
+						var cmr = plus.camera.getCamera();
+						cmr.captureImage(function(path) {
+							// 上传
+							vm.upload(path)
+						}, function(e) {
+							console.log('失败：' + e.message)
+						}, {
+							filename: '_doc/camera/',
+							index: 1
+						});
+					},
+					/**
+					 * 从相册中选取
+					 */
+					byAlbum: function() {
+						var lfs = null; // 保留上次选择图片列表
+						var vm = this;
+						plus.gallery.pick(function(e) {
+							vm.upload(e)
+						}, function(e) {
+							mui.toast('取消选择图片');
+						}, {
+							filter: 'image'
+						});
+					},
+					/**
+					 * 上传文件
+					 * @param {String} path
+					 */
+					upload: function(path) {
+						var vm = this;
+						var task = plus.uploader.createUpload(vm.uploadUrl, {
+							method: "POST"
+						}, function(t, status) { //上传完成
+							if(status == 200) {
+								if(JSON.parse(t.responseText).aaData) {
+									// 保存上传成功返回对象
+									vm.uploadResponse = JSON.parse(t.responseText).aaData;
+									// 赋值保存参数
+									vm.paramObj.headPortrait = JSON.parse(t.responseText).aaData.path;
+									// 赋值显示头像的路径
+									vm.headPortrait = IMGURL + JSON.parse(t.responseText).aaData.path + '&image/jpeg';
+								}
+								console.log("上传成功：" + t.responseText);
+							} else {
+								mui.toast("上传头像失败：" + status);
+							}
+						});
+						task.addFile(path, {
+							key: 'file'
+						});
+						task.start();
+					},
+					/**
+					 * 验证昵称输入
+					 */
+					checkName: function() {
+						if(this.paramObj.nickName == '') {
+							return false;
+						}
+						if(this.paramObj.nickName.length > 10) {
+							mui.alert('姓名输入不超过20个字符');
+						}
+						console.log(this.paramObj.nickName)
+					}
+				}
+			});
+		</script>
+	</body>
+
+</html>

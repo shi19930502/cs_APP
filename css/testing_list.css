@@ -1,0 +1,12 @@
+.select-date{
+	padding: 10px 15px;
+}
+.select-date div:nth-child(2){
+	position: absolute;
+	right: 15px;
+	padding-top: 2px;
+}
+.hege-text{
+	text-align: right;
+	padding-top: 20px;
+}

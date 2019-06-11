@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../libs/css/mui.picker.min.css" />
+		<link rel="stylesheet" href="../css/comm.css">
+		<style type="text/css">
+			.selectedimg {
+				padding: 15px 15px 5px;
+			}
+			.selectedimg div {
+				text-align: center;
+				margin-bottom: 10px;
+			}
+			.selectedimg div img {
+				width: 100px;
+				height: 90px;
+				border-radius: 2px;
+			}
+			.deleteimg {
+				width: 19px;
+				height: 19px;
+				background: url(../images/add_icon_close.png);
+				background-size: 100% 100%;
+				position: absolute;
+				top: -8px;
+				right: 1px;
+			}
+			.mui-icon.mui-icon-clear {
+				top: 12px !important;
+				right: 70px !important;
+			}
+		</style>
+
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<header class="mui-bar mui-bar-nav" id="header">
+					<div class="mui-action-back mui-pull-left navicon-back1"></div>
+					<h1 id="title" class="mui-title">编辑采收作物</h1>
+					<div class="mui-pull-right back-text" @tap="save">保存</div>
+				</header>
+				<div class="mui-content" v-show="isEdit">
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row">
+							<a v-if="saveType == 0" class="mui-navigate-right"></a>
+							<label>作物</label>
+							<span v-if="saveType == 0" style="width: 65%;text-align: right;" class="fr select-text mui-ellipsis" id="templateId" @tap="selectModelTemplate">请选择(必填) </span>
+							<span v-else style="width: 65%;text-align: right;" class="fr select-text mui-ellipsis" id="templateId">请选择(必填) </span>
+						</div>
+						<div class="mui-input-row">
+							<a v-if="saveType == 0" class="mui-navigate-right"></a>
+							<label>品种</label>
+							<span v-show="saveType == 0" class="fr select-text mui-ellipsis" id="varietiesId" @tap="selectModelVarieties">请选择(必填) </span>
+							<span v-show="isEdit && saveType != 0" class="fr select-text mui-ellipsis" id="varietiesName"></span>
+						</div>
+						<div class="mui-input-row">
+							<a class="mui-navigate-right"></a>
+							<label>产出品</label>
+							<span class="fr select-text mui-ellipsis" id="produceId" @tap="selectModelProduce">请选择(必填) </span>
+						</div>
+						<div class="mui-input-row">
+							<a class="mui-navigate-right"></a>
+							<label>区域</label>
+							<span class="fr select-text mui-ellipsis" id="acreId" @tap="selectAcre">请选择(必填) </span>
+						</div>
+						<div class="mui-input-row">
+							<a class="mui-navigate-right"></a>
+							<label>种植日期</label>
+							<span class="fr select-text mui-ellipsis" @tap="datePicker">{{paramObj.plantingTime.split(' ')[0]}}</span>
+						</div>
+						<div class="mui-input-row">
+							<a class="mui-navigate-right"></a>
+							<label>采收部位</label>
+							<span class="fr select-text mui-ellipsis" id="dictionaryId" @tap="selectDataDictionary">请选择(必填) </span>
+						</div>
+					</div>
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row">
+							<a class="mui-navigate-right" @tap="selectbasUnit"></a>
+							<label>计量单位</label>
+							<span class="fr select-text mui-ellipsis" id="unitId" @tap="selectbasUnit">{{Unitname}}</span>
+						</div>
+						<div class="mui-input-row">
+							<label>规格</label>
+							<input v-if="Unitname == 'KG'" disabled="disabled" v-model="paramObj.netWeight" type="text" placeholder="请输入(必填)" style="width: 40%;float: left;">
+							<input @input="checkUnmber('netWeight')" v-else v-model="paramObj.netWeight" type="text" placeholder="请输入(必填)" style="width: 40%;float: left;">
+							<span v-if="Unitname == 'KG'" style="float: right;padding-right: 40px;">{{ Unitname }}</span>
+							<span v-else style="float: right;padding-right: 40px;">{{'KG/' + Unitname}}</span>
+
+						</div>
+						<div class="mui-input-row">
+							<label>采收数量</label>
+							<input @input="checkUnmber('quantity')" v-model="paramObj.quantity" type="text" placeholder="请输入(必填)" style="width: 40%;float: left;">
+							<span style="float: right;padding-right: 40px;">{{Unitname}}</span>
+						</div>
+						<div class="mui-input-row">
+							<label>单价</label>
+							<input @input="checkUnmber('price')" v-model="paramObj.price" type="text" placeholder="请输入(必填)" style="width: 40%;float: left;">
+							<span style="float: right;padding-right: 40px;">元/{{Unitname}}</span>
+						</div>
+						<div class="mui-input-row">
+							<label>保质期</label>
+							<input @input="checkUnmber('validity')" v-model="paramObj.validity" type="text" placeholder="请输入(必填)" style="width: 40%;float: left;">
+							<span style="float: right;padding-right: 40px;">天</span>
+						</div>
+						<div class="mui-input-row">
+							<a class="mui-navigate-right" v-show="saveType == 0"></a>
+							<label>物料等级</label>
+							<span v-if="saveType == 0" class="fr select-text mui-ellipsis" id="grade" @tap="selectGrade">请选择(必填) </span>
+							<span v-else class="fr select-text mui-ellipsis" id="grade">请选择(必填) </span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>
+
+	</body>
+	<script src="../libs/js/mui.min.js "></script>
+	<script src="../libs/js/vue.min.js "></script>
+	<script src="../libs/js/mui.picker.min.js"></script>
+	<script src="../js/comm.js "></script>
+
+	<script>
+		var vm = new Vue({
+			el: '#app',
+			template: indexTpl,
+			data: function() {
+				return {
+					isnum_alert: 0,
+					islength_alert: 0,
+
+					// 是否编辑进入
+					isEdit: false,
+					loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+					// 采收部位选择列表
+					dataDictionaryList: [],
+					// 作物列表
+					modelTemplateList: [],
+					// 区域列表
+					AcreList: [],
+					// 产出品列表
+					ModelProduceList: [],
+					// 单位列表
+					basUnitList: [],
+					// 品种列表
+					ModelVarieties: [],
+					saveType: '',
+					// 物料等级列表
+					gradeList: [{
+						value: 1,
+						text: "特等"
+					}, {
+						value: 2,
+						text: "一等"
+					}, {
+						value: 3,
+						text: "二等"
+					}],
+					// 默认的单位
+					Unitname: '',
+					paramObj: {
+						templateId: '',
+						templateName: '',
+						acreId: '',
+						acreName: '',
+						varietiesId: '',
+						varietiesName: '',
+						plantingTime: '请选择(必填)',
+						produceId: '',
+						produceName: '',
+						part: '',
+						unitId: '',
+						unitName: '',
+						quantity: 1, // 数量
+						price: 1, // 价格
+						grade: '', // 
+						validity: 30, // 保质期
+						netWeight: '1', //
+						editable: true,
+					},
+					// 保存返回的页面id
+					saveBackPageId: 'recovery_add'
+				}
+			},
+			mounted: function() {
+				// 获取作物列表
+				this.getModelTemplateList();
+				// 获取采收部位列表
+				this.getDataDictionaryList();
+				// 获取单位列表
+				this.getBasUnitList();
+
+				mui.plusReady(function() {
+					var self = plus.webview.currentWebview();
+					/**
+					 * 获取新增作物页面编辑参数
+					 */
+					if(self.recoveryDetailData) {
+						this.isEdit = true;
+						this.getModelProduceList(self.recoveryDetailData.templateId);
+
+						this.paramObj.templateId = self.recoveryDetailData.templateId
+						this.paramObj.templateName = self.recoveryDetailData.templateName;
+						this.paramObj.acreId = self.recoveryDetailData.acreId
+						this.paramObj.acreName = self.recoveryDetailData.acreName
+						this.paramObj.varietiesId = self.recoveryDetailData.varietiesId
+						this.paramObj.varietiesName = self.recoveryDetailData.varietiesName
+						this.paramObj.plantingTime = self.recoveryDetailData.plantingTime
+						this.paramObj.produceId = self.recoveryDetailData.produceId
+						this.paramObj.produceName = self.recoveryDetailData.produceName
+						this.paramObj.part = self.recoveryDetailData.part
+						this.paramObj.unitId = self.recoveryDetailData.unitId
+						this.paramObj.unitName = self.recoveryDetailData.unitName
+						this.Unitname = self.recoveryDetailData.unitName
+						this.paramObj.plantId = self.recoveryDetailData.plantId
+
+						this.paramObj.quantity = self.recoveryDetailData.quantity
+						this.paramObj.price = self.recoveryDetailData.price
+						this.paramObj.grade = self.recoveryDetailData.grade
+						this.paramObj.validity = self.recoveryDetailData.validity
+						this.paramObj.netWeight = self.recoveryDetailData.netWeight
+						this.paramObj.editable = true
+
+						document.getElementById('templateId').innerHTML = self.recoveryDetailData.templateName;
+						document.getElementById('acreId').innerHTML = self.recoveryDetailData.acreName || '无';
+						document.getElementById('varietiesName').innerHTML = self.recoveryDetailData.varietiesName;
+						document.getElementById('varietiesId').innerText = self.recoveryDetailData.varietiesName;
+						document.getElementById('produceId').innerHTML = self.recoveryDetailData.produceName || '无';
+						document.getElementById('dictionaryId').innerHTML = self.recoveryDetailData.part || '无';
+						document.getElementById('unitId').innerHTML = self.recoveryDetailData.unitName;
+						document.getElementById('grade').innerHTML = self.recoveryDetailData.grade == 1 ? '特等' : self.recoveryDetailData.grade == 2 ? '一等' : '二等';
+					}
+					/**
+					 * 获取是从哪个页面进入改页面的进行不同的操作
+					 */
+					if(self.isAddPage) {
+						this.saveBackPageId = 'recovery_add_from_add'
+					}
+					if(self.baseId) {
+						this.getAcreList(self.baseId);
+					}
+					if(self.saveType) {
+						this.saveType = self.saveType;
+					}
+				}.bind(this))
+			},
+			methods: {
+				/**
+				 * 保存
+				 */
+				save: function() {
+					var vm = this;
+					var check;
+					// 必填字段
+					var checkArr = ['作物:templateId', '区域:acreId', '品种:varietiesId', '种植日期:plantingTime', '采收部位:dictionaryId', '物料等级:grade', '规格:netWeight', '采收数量:quantity', '单价:price', '保质期:validity'];
+					for(var i in checkArr) {
+						if(vm.paramObj[checkArr[i].split(':')[1]] == '' || vm.paramObj[checkArr[i].split(':')[1]] == '请选择(必填) ') {
+							mui.alert('请填写' + checkArr[i].split(':')[0]);
+							check = false;
+							return false;
+						} else {
+							check = true;
+						}
+					}
+					// 保存提交
+					if(check) {
+						if(!vm.isEdit) {
+							mui.openWindow({
+								url: 'recovery_add.html',
+								id: vm.saveBackPageId,
+								extras: {
+									paramObj: vm.paramObj
+								}
+							})
+						} else {
+							// 如果是编辑进入该页面则返回
+							var view = plus.webview.getWebviewById('recovery_add');
+							console.log(JSON.stringify(vm.paramObj))
+							mui.fire(view, 'editback', {
+								paramObj: vm.paramObj,
+							});
+							mui.back();
+						}
+					}
+				},
+				/**
+				 * 选择作物
+				 */
+				selectModelTemplate: function() {
+					var userPicker = new mui.PopPicker();
+					var userResult = document.getElementById('templateId');
+					userPicker.show(function(items) {
+						userResult.innerText = items[0].text;
+						this.paramObj.templateId = items[0].value;
+						this.paramObj.templateName = items[0].text;
+						// 获取产品列表
+						this.getModelProduceList(items[0].value);
+						// 获取作物对应品种列表
+						this.getModelVarieties(items[0].value)
+					}.bind(this));
+					userPicker.setData(this.modelTemplateList);
+				},
+				/**
+				 * 获取作物列表
+				 */
+				getModelTemplateList: function() {
+					getDataList(APIURL + 'business/modelTemplate/list', {
+						enterpriseId: this.loginUserInfo.enterpriseId,
+						state: 0
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								for(var i in d.aaData) {
+									var obj = {
+										value: d.aaData[i].templateId,
+										text: d.aaData[i].cultivarName
+									};
+									this.modelTemplateList.push(obj)
+								}
+								this.getModelVarieties(d.aaData[0].templateId)
+							}
+						}
+					}.bind(this))
+				},
+				/**
+				 * 选择区域
+				 */
+				selectAcre: function() {
+					var userPicker = new mui.PopPicker();
+					var userResult = document.getElementById('acreId');
+					userPicker.show(function(items) {
+						userResult.innerText = items[0].text;
+						this.paramObj.acreId = items[0].value;
+						this.paramObj.acreName = items[0].text;
+						console.log(this.paramObj.acreId)
+					}.bind(this));
+					userPicker.setData(this.AcreList);
+				},
+				/**
+				 * 获取区域列表
+				 * @param {Object} baseId
+				 */
+				getAcreList: function(baseId) {
+					getDataList(APIURL + 'business/acre/queryList', {
+						enterpriseId: this.loginUserInfo.enterpriseId,
+						baseId: baseId
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								for(var i in d.aaData) {
+									var obj = {
+										value: d.aaData[i].acreId,
+										text: d.aaData[i].name
+									};
+									this.AcreList.push(obj)
+								}
+							}
+						}
+					}.bind(this))
+				},
+				/**
+				 * 选择产出品
+				 */
+				selectModelProduce: function() {
+					var userPicker = new mui.PopPicker();
+					var userResult = document.getElementById('produceId');
+					if(this.paramObj.templateId == '') {
+						mui.alert('请先选择作物');
+					} else {
+						userPicker.show(function(items) {
+							userResult.innerText = items[0].text;
+							this.paramObj.produceId = items[0].value;
+							this.paramObj.produceName = items[0].text;
+							console.log(this.paramObj.produceId)
+							console.log(this.paramObj.produceName)
+						}.bind(this));
+						userPicker.setData(this.ModelProduceList);
+					}
+				},
+				/**
+				 * 获取产出品列表
+				 * @param {Object} templateId
+				 */
+				getModelProduceList: function(templateId) {
+					getDataList(APIURL + 'business/modelProduce/list', {
+						templateId: templateId,
+						pageSize: -1,
+						enterpriseId: this.loginUserInfo.enterpriseId
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								// 清空产出品
+								this.ModelProduceList = [];
+								for(var i in d.aaData) {
+									var obj = {
+										value: d.aaData[i].produceId,
+										text: d.aaData[i].name
+									};
+									this.ModelProduceList.push(obj);
+									this.paramObj.produceId = this.ModelProduceList[0].value;
+									this.paramObj.produceName = this.ModelProduceList[0].text;
+
+									document.getElementById('produceId').innerText = this.ModelProduceList[0].text;
+								}
+							} else {
+								this.ModelProduceList = [{
+									value: '',
+									text: '无'
+								}];
+								this.paramObj.produceId = '';
+								this.paramObj.produceName = '无';
+								document.getElementById('produceId').innerText = '无';
+							}
+						}
+					}.bind(this))
+				},
+				/**
+				 * 选择采收部位
+				 */
+				selectDataDictionary: function() {
+					var userPicker = new mui.PopPicker();
+					var userResult = document.getElementById('dictionaryId');
+					userPicker.show(function(items) {
+						userResult.innerText = items[0].text;
+						this.paramObj.part = items[0].text;
+						console.log(this.paramObj.part)
+					}.bind(this));
+					userPicker.setData(this.dataDictionaryList);
+				},
+				/**
+				 * 获取采收部位列表
+				 */
+				getDataDictionaryList: function() {
+					getDataList(APIURL + 'business/dataDictionary/list ', {
+						parent: 82
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								for(var i in d.aaData) {
+									var obj = {
+										value: d.aaData[i].dictionaryId,
+										text: d.aaData[i].name
+									};
+									vm.dataDictionaryList.push(obj)
+								}
+							}
+						}
+					})
+				},
+				/**
+				 * 选择单位
+				 */
+				selectbasUnit: function() {
+					var userPicker = new mui.PopPicker();
+					var userResult = document.getElementById('unitId');
+					userPicker.show(function(items) {
+						userResult.innerText = items[0].text;
+						this.paramObj.unitId = items[0].value;
+						this.paramObj.unitName = items[0].text;
+						this.Unitname = items[0].text;
+						if(this.Unitname == 'KG'){
+							this.paramObj.netWeight = '1'
+						}
+						console.log(this.paramObj.unitName)
+						console.log(this.paramObj.unitId)
+					}.bind(this));
+					userPicker.setData(this.basUnitList);
+				},
+				/**
+				 * 获取单位列表
+				 */
+				getBasUnitList: function() {
+					getDataList(APIURL + 'business/basUnit/list', {
+						enterpriseId: this.loginUserInfo.enterpriseId
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								this.Unitname = d.aaData[0].name;
+								for(var i in d.aaData) {
+									var obj = {
+										value: d.aaData[i].unitId,
+										text: d.aaData[i].name
+									};
+									this.basUnitList.push(obj)
+									if(d.aaData[i].unitId == 1) {
+										this.paramObj.unitId = d.aaData[i].unitId;
+										this.paramObj.unitName = d.aaData[i].name;
+									}
+								}
+							}
+						}
+					}.bind(this))
+				},
+				/**
+				 * 获取品种列表
+				 * @param {Object} templateId
+				 */
+				getModelVarieties: function(templateId) {
+					getDataList(APIURL + 'business/modelVarieties/list', {
+						enterpriseId: this.loginUserInfo.enterpriseId,
+						templateId: templateId
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								// 清空产出品
+								this.ModelVarieties = [];
+								for(var i in d.aaData) {
+									var obj = {
+										value: d.aaData[i].varietiesId,
+										text: d.aaData[i].name
+									};
+									this.ModelVarieties.push(obj);
+									this.paramObj.varietiesId = this.ModelVarieties[0].value;
+									this.paramObj.varietiesName = this.ModelVarieties[0].text;
+									document.getElementById('varietiesId').innerText = this.ModelVarieties[0].text;
+								}
+							} else {
+								this.ModelVarieties = [{
+									value: '',
+									text: '无'
+								}];
+								this.paramObj.varietiesId = '';
+								document.getElementById('varietiesId').innerText = '无';
+							}
+						}
+					}.bind(this))
+				},
+				/**
+				 * 选择品种
+				 */
+				selectModelVarieties: function() {
+					var vm = this;
+					var userPicker = new mui.PopPicker();
+					var userResult = document.getElementById('varietiesId');
+					userPicker.show(function(items) {
+						userResult.innerText = items[0].text;
+						vm.paramObj.varietiesId = items[0].value;
+						vm.paramObj.varietiesName = items[0].text;
+						console.log(items[0].value)
+					});
+					userPicker.setData(vm.ModelVarieties);
+				},
+				/**
+				 * 选择物料等级
+				 */
+				selectGrade: function() {
+					var vm = this;
+					var userPicker = new mui.PopPicker();
+					var userResult = document.getElementById('grade');
+					userPicker.show(function(items) {
+						userResult.innerText = items[0].text;
+						vm.paramObj.grade = items[0].value;
+						console.log(vm.paramObj.grade)
+					});
+					userPicker.setData(vm.gradeList);
+				},
+				/**
+				 * 时间选择器
+				 * @param {Object} type
+				 */
+				datePicker: function(type) {
+					var vm = this;
+					//首先获取到当前的年月日
+					var cdate = new Date();
+					var year = cdate.getFullYear();
+					var month = cdate.getMonth() + 1;
+					var day = cdate.getDate();
+					var dtPicker = new mui.DtPicker({
+						type: 'date',
+						endYear: year,
+						endMonth: month,
+						endDay: day
+					});
+					dtPicker.show(function(rs) {
+						vm.paramObj.plantingTime = rs.text;
+					})
+				},
+				/**
+				 * 验证只能输正整数
+				 */
+
+				checkUnmber: function(id) {
+					var reg = /^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/
+					if(this.paramObj[id] != '') {
+						if(!reg.test(this.paramObj[id])) {
+							this.isnum_alert++;
+							if(this.isnum_alert == 1) {
+								mui.alert('只能输入数字，请重新输入！', function() {
+									this.isnum_alert = 0
+								}.bind(this)); 
+							}
+							id == 'validity' ? this.paramObj[id] = 30 : this.paramObj[id] = 1;
+							return false
+						}
+						if(this.paramObj[id].length > 7) {
+							this.islength_alert++;
+							if(this.islength_alert == 1) {
+								mui.alert('输入数字超长，请重新输入！', function() {
+									this.islength_alert = 0
+								}.bind(this));
+							}
+							id == 'validity' ? this.paramObj[id] = 30 : this.paramObj[id] = 1;
+							return false
+						}
+					}
+				},
+			}
+		});
+	</script>
+	<script src="../js/immersed.js"></script>
+
+</html>

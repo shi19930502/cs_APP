@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<header class="mui-bar mui-bar-nav" id="header">
+					<div class="mui-action-back mui-pull-left navicon-back1"></div>
+					<h1 id="title" class="mui-title">设置</h1>
+				</header>
+				<div class="mui-content">
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row bfc" @tap="toUpdatePassword">
+							<a class="mui-navigate-right"></a>
+							<label>修改密码</label>
+						</div>
+						<div class="mui-input-row bfc" @tap="logOut">
+							<a class="mui-navigate-right"></a>
+							<label style="width: 50%;">退出当前账户</label>
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>
+
+		<script src="../libs/js/mui.min.js"></script>
+		<script src="../libs/js/vue.min.js"></script>
+		<script>
+			var vm = new Vue({
+				el: '#app',
+				template: indexTpl,
+				data: function() {
+					return {}
+				},
+				mounted: function() {},
+				methods: {
+					logOut: function() {
+						plus.nativeUI.actionSheet({
+							cancel: "取消",
+							buttons: [{
+								title: "注销当前账号"
+							}, {
+								title: "直接关闭应用"
+							}]
+						}, function(e) {
+							var index = e.index;
+							switch(index) { //case 0: 取消
+								case 1: //
+									localStorage.removeItem('loginUserInfo');
+									plus.runtime.restart();
+									break;
+								case 2: //
+									plus.runtime.quit();
+									break;
+							}
+						});
+					},
+					toUpdatePassword: function() {
+						mui.openWindow({
+							url: 'index_userInfo_updatepsw.html',
+							id: 'index_userInfo_updatepsw'
+						})
+					}
+				}
+			});
+		</script>
+		<script src="../js/immersed.js"></script>
+	</body>
+
+</html>

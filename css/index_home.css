@@ -1,0 +1,130 @@
+/********banner*/
+.banner{
+	width: 100%;
+	height: 107px;
+	background: #70C93E;
+	padding: 21px 10px;
+}
+.banner p{
+	margin-bottom: 0px;
+	color: #fff;
+}
+
+.banner p span{
+	color: #7da7fa;
+}
+.banner .icon_zhuanhuan{
+	width: 50px;
+	height: 50px;
+	background: url("../images/home_icon_zhuanhuan1.png");
+	background-size: 100%;
+}
+.jidinfo {
+	padding-top: 5px;
+}
+.banner .jidinfo p{
+	height: 20px;
+	line-height: 20px;
+}
+/********基地检测采收加工 */
+.content2-list{
+	text-align: center;
+	padding: 15px 0;
+	background: #FFFFFF;
+	margin-bottom: 10px;
+}
+.content2-list h5{
+	color: #4C4C4C;
+	font-weight: bold;
+}
+
+/*采收种植农事记录*/
+.mui-segmented-control.mui-segmented-control-inverted~.mui-slider-progress-bar{
+	background-color: #7ADB46;
+}
+.slider-nav {
+	background: #fff !important;
+	color: #969696;
+}
+/**
+ * 改变绿色导航条，在内部新建一个div
+ */
+#sliderProgressBar{
+	position: absolute;
+	top: 33px;
+	background: #fff;
+}
+#sliderProgressBar .inner-bar{
+	width: 40%;
+	margin: 0 auto;
+	height: 2px;
+	background: #7ADB46;
+}
+.mbtenpx-list .mui-table-view-cell{
+	padding-bottom: 12px;
+}
+.mui-segmented-control.mui-segmented-control-inverted .mui-control-item.mui-active{
+	color: #4c4c4c;
+}
+/*loding位置*/
+.mui-control-content .mui-loading {
+	margin-top: 30px;
+}
+.mui-control-content {
+	background-color: #efeff4;
+	min-height: 302px;
+}
+.mui-slider .mui-segmented-control.mui-segmented-control-inverted~.mui-slider-group .mui-slider-item{
+	border-bottom: 1px solid #efeff4;
+}
+/**
+ * 种植信息绿色的一条
+ */
+.green-line{
+	height: 8px;
+	width: 100%;
+	border-radius: 4px;
+	background: #6ec73e;
+	margin-top: 6px;
+}
+/**
+ * 农事记录
+ */
+.user-headimg{
+	width: 44px;
+	height: 44px;
+	border-radius: 22px;
+	overflow: hidden;
+}
+.user-headimg img{
+	width: 100%;
+	height: 100%;
+}
+.farming-type{
+	padding-left: 10px;
+}
+.farming-type h5 span.plan{
+	display: inline-block;
+	background: #ff7b6d;
+	color: #fff;
+	font-size: 12px;
+	padding: 3px;
+	margin-left: 10px;
+	border-radius: 1px;
+}
+.farming-type h5{
+	color: #4c4c4c;
+}
+.farming-time{
+	text-align: right;
+	padding-top: 6px;
+}
+.farming-imgs div{
+	padding: 0 1px;
+	height: 80px;
+	margin-top: 3px;
+}
+.farming-imgs div img{
+	width: 100%;
+	height: 100%;
+}

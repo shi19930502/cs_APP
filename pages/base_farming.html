@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+		<link rel="stylesheet" href="../libs/css/mui.picker.min.css" />
+
+		<style type="text/css">
+			.farming-warper {
+				padding: 11px 0px;
+			}
+			.user-headimg {
+				width: 44px;
+				height: 44px;
+				border-radius: 22px;
+				overflow: hidden;
+			}
+			.user-headimg img {
+				width: 100%;
+				height: 100%;
+			}
+			.farming-type h5 span.plan {
+				display: inline-block;
+				background: #ff7b6d;
+				color: #fff;
+				font-size: 12px;
+				padding: 3px;
+				margin-left: 10px;
+				border-radius: 1px;
+			}
+			.farming-type h5 {
+				color: #4c4c4c;
+			}
+			.farming-time {
+				text-align: right;
+				padding-top: 6px;
+			}
+			.farming-imgs div {
+				padding: 0 1px;
+				height: 80px;
+				margin-top: 3px;
+			}
+			.farming-imgs div img {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<!--查询条件-->
+				<div class="mui-row query-condition-warpper" style="position: fixed;top: 0;width: 100%;z-index: 100;">
+					<div class="mui-col-sm-4 mui-col-xs-4 mui-ellipsis" @tap="selectFarmingType">
+						<span id="baseResult">{{allTypeText}}</span>
+						<img src="../images/jidi_icon_down.png" width="8px" />
+					</div>
+					<div class="mui-col-sm-4 mui-col-xs-4 mui-ellipsis" @tap="selectHandleUser">
+						<span id="recoveryUserResult">{{allUserText}}</span>
+						<img src="../images/jidi_icon_down.png" width="8px" />
+					</div>
+					<div class="mui-col-sm-4 mui-col-xs-4 mui-ellipsis" @tap="selectBase">
+						<span id="HandleUserResult">{{allBaseText}}</span>
+						<img src="../images/jidi_icon_down.png" width="8px" />
+					</div>
+				</div>
+				<div class="mui-content" style="padding-top: 40px;">
+					<!--列表-->
+					<div id="pullrefresh">
+						<ul class="mui-table-view mbtenpx-list">
+							<li class="mui-table-view-cell mui-media" v-for="d in farmingList">
+								<div class="farming-warper">
+									<div class="mui-row">
+										<div class="mui-col-sm-2 mui-col-xs-2">
+											<div class="user-headimg">
+												<img :src="d.picPhotoCode" v-if="d.picPhotoCode" />
+												<img src="../images/often.png" v-else/>
+											</div>
+										</div>
+										<div class="mui-col-sm-7 mui-col-xs-7 farming-type">
+											<div class="nstype">
+												<h5>
+														<strong>{{d.operationContent}}</strong>
+														<!--计划的农事-->
+														<span class="plan" v-if="d.type==0">计划</span>
+													</h5>
+												<p>区域 <span class="blue-text">{{d.acreName}}</span></p>
+											</div>
+										</div>
+										<div class="mui-col-sm-3 mui-col-xs-3 farming-time">
+											<p>{{d.operatingDate}}</p>
+											<p>{{d.operationUsername}}</p> 
+										</div>
+									</div>
+									<!--不是计划的农事显示图片-->
+									<template v-if="d.type == 1">
+										<div class="mui-row farming-imgs">
+											<div class="mui-col-sm-4 mui-col-xs-4" v-for="(item,index) in d.farmthingImg">
+												<div class="imgwraper">
+													<img :src="item" @tap="previewImage(d.farmthingImg,index)"/>
+												</div>
+											</div>
+										</div>
+									</template>
+								</div>
+								<div class="mui-row edit-item">
+									<h6 class="mui-col-sm-6 mui-col-xs-6"><p  class='mui-ellipsis' style="margin-top: 12px;">投放品 {{d.materialNames}}</p></h6>
+									<h6 class="mui-col-sm-3 mui-col-xs-3" @tap="toEditFarming(d.farmingId)"><span class="mui-icon mui-icon mui-icon-compose"></span>编辑</h6>
+									<h6 class="mui-col-sm-3 mui-col-xs-3" @tap="deleteFarming(d.farmingId)"><span class="mui-icon mui-icon mui-icon mui-icon-trash"></span>删除</h6>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</script>
+
+	</body>
+	<script src="../libs/js/mui.min.js"></script>
+	<script src="../libs/js/vue.min.js"></script>
+	<script src="../libs/js/mui.picker.js"></script>
+	<script src="../libs/js/mui.poppicker.js"></script>
+	<script src="../js/comm.js"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el: '#app',
+			template: indexTpl,
+			data: function() {
+				return {
+					loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+					pageSize: 10,
+					pageNum: 1,
+					pageTatol: 0,
+					userId: '', //操作人Id  
+					baseId: '', //基地Id 
+					type: '', //类型  
+					operatingDateBegin: '', //操作时间开始
+					operatingDateEnd: '', //操作时间结束 
+					farmingList: [], //农事列表数据
+					//查询条件列表
+					queryList: [],
+					popoverHeight: "height: 300px;",
+					allTypeText: '全部分类',
+					allUserText: '全部操作人',
+					allBaseText: '全部基地',
+					whoQuerytap: '', // 0全部分类1全部操作人2全部基地
+					// 基地选择列表
+					baseList: [{
+						value: '',
+						text: '全部基地'
+					}],
+					// 采收人选择列表
+					handleUserList: [{
+						value: '',
+						text: '全部经办人'
+					}],
+					// 农事类型类别
+					typeArr: [{
+						value: '',
+						text: '全部分类'
+					}, {
+						value: '0',
+						text: '计划'
+					}, {
+						value: '1',
+						text: '记录'
+					}],
+
+				}
+			},
+			mounted: function() {
+				var vm = this;
+				/**
+				 * 监听refresh事件刷新页面
+				 */
+				window.addEventListener('refresh', function(e) {
+					vm.pageNum = 1;
+					vm.queryFamingAppList(false);
+				})
+				/**
+				 * 获取基地列表数据
+				 */
+				vm.getBaseList();
+				/**
+				 * 获取人员选择列表数据
+				 */
+				vm.getUserList();
+				/**
+				 * 下拉加载分页初始化
+				 */
+				mui.init({
+					swipeBack: false,
+					pullRefresh: {
+						container: '#pullrefresh',
+						down: {
+							style: 'circle',
+							offset: '40px',
+							auto: true,
+							callback: function() {
+								vm.pageNum = 1;
+								vm.queryFamingAppList(false, function() {
+									mui('#pullrefresh').pullRefresh().endPulldown();
+								});
+							}
+						},
+						up: {
+							contentrefresh: '正在加载...',
+							callback: function() {
+								++vm.pageNum;
+								vm.queryFamingAppList(true);
+								mui('#pullrefresh').pullRefresh().endPullupToRefresh((vm.pageNum > vm.pageTatol));
+							}
+						}
+					}
+				});
+				mui.plusReady(function() {
+					var self = plus.webview.currentWebview();
+					var titleView = self.getNavigationbar();
+					if(!titleView) {
+						titleView = plus.webview.getLaunchWebview().getNavigationbar();
+					}
+					//开启回弹
+					self.setStyle({
+						bounce: "vertical",
+						bounceBackground: "#ffffff",
+					});
+					// 绘制添加按钮
+					titleView.drawText('添加', {
+						top: "10px",
+						right: "10px",
+						height: "24px"
+					}, {
+						align: 'right',
+						color: '#fff',
+						size: '17px'
+					});
+					// 是否拦截View控件的触屏事件
+					titleView.interceptTouchEvent(true);
+					// 下一步点击事件
+					titleView.addEventListener("click", function(e) {
+						var x = e.clientX;
+						if(x > 300) {
+							vm.goBaseMainAdd();
+						}
+					})
+				})
+			},
+			methods: {
+				/**
+				 * 获取农事列表数据
+				 * @param {Boolean} isUp 是否上拉加载调用
+				 * @param {Function} cb 关闭下拉刷新
+				 */
+				queryFamingAppList: function(isUp, cb) {
+					var vm = this;
+					getDataList(APIURL + 'business/farming/queryFamingAppList', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+						userId: vm.userId, //操作人Id  
+						baseId: vm.baseId, //基地Id 
+						type: vm.type, //类型  
+						pageSize: vm.pageSize,
+						pageNum: vm.pageNum
+					}, function(d) {
+						if(d.aaData && d.aaData.length && d.aaData.length > 0) {
+							for(var i in d.aaData) {
+								// 处理时间
+								if(d.aaData[i].operatingDate) {
+									d.aaData[i].operatingDate = d.aaData[i].operatingDate.split(' ')[0]
+								}
+
+								// 处理图片路径
+								if(d.aaData[i].picPhotoCode) {
+									d.aaData[i].picPhotoCode = IMGURL + d.aaData[i].picPhotoCode + '&image/jpeg';
+								}
+
+								// 处理投放品
+								if(d.aaData[i].materialName) {
+									d.aaData[i].materialNames = d.aaData[i].materialName.join(',');
+								}
+
+								// 处理农事图片
+								var photos = [];
+								if(d.aaData[i].photopathcode) {
+									photos = d.aaData[i].photopathcode.split(',');
+									for(var j in photos) {
+										photos[j] = IMGURL + photos[j] + '&image/jpeg'
+									}
+								}
+								d.aaData[i].farmthingImg = photos;
+							}
+
+							if(isUp) {
+								vm.farmingList = vm.farmingList.concat(d.aaData);
+							} else {
+								vm.farmingList = d.aaData;
+								vm.pageTatol = Math.ceil(d.dataCount / vm.pageSize);
+							}
+						} else {
+							if(!isUp) {
+								vm.farmingList = [];
+							}
+							mui.toast('没有更多数据了');
+						}
+						cb && cb();
+					})
+				},
+				/**
+				 * 跳转添加农事
+				 */
+				goBaseMainAdd: function() {
+					mui.openWindow({
+						url: 'base_farming_add.html',
+						id: 'base_farming_add',
+						styles: {
+							titleNView: { // 窗口的标题栏控件
+								titleText: "添加农事",
+								backgroundColor: "#70C93E",
+								titleColor: "#fff",
+								autoBackButton: true,
+								titleSize: "18px",
+							}
+						}
+					})
+				},
+				/**
+				 * 跳转编辑农事
+				 * @param {String} farmingId
+				 */
+				toEditFarming: function(farmingId) {
+					mui.openWindow({
+						url: 'base_farming_add.html',
+						id: 'base_farming_add',
+						extras: {
+							farmingId: farmingId
+						},
+						styles: {
+							titleNView: { // 窗口的标题栏控件
+								titleText: "编辑农事",
+								backgroundColor: "#70C93E",
+								titleColor: "#fff",
+								autoBackButton: true,
+								titleSize: "18px",
+							}
+						}
+					})
+				},
+				/**
+				 * 选择查询类型
+				 * @param {DOM} e
+				 */
+				selectType: function(e) {
+					this.pageNum = 1;
+					if(this.whoQuerytap === 0) {
+						this.type = e.target.getAttribute('queryId') - 0;
+						this.allTypeText = e.target.innerHTML;
+						this.queryFamingAppList(false);
+					} else if(this.whoQuerytap === 1) {
+						this.userId = e.target.getAttribute('queryId');
+						this.allUserText = e.target.innerHTML;
+						this.queryFamingAppList(false);
+					} else {
+						this.baseId = e.target.getAttribute('queryId');
+						this.allBaseText = e.target.innerHTML;
+						this.queryFamingAppList(false);
+					}
+				},
+				/**
+				 * 删除农事
+				 * @param {Object} farmingId
+				 */
+				deleteFarming: function(farmingId) {
+					var vm = this;
+					var msg = '确认删除?';
+					var title = '提示';
+					var btnValue = ['确认', '取消'];
+					mui.confirm(msg, title, btnValue, function(e) {
+						if(e.index == 0) {
+							getDataList(APIURL + 'business/farming/delete', {
+								farmingId: farmingId
+							}, function(d) {
+								if(d && d.state === 0) {
+									// 先删除列表数据中的
+									for(var i in vm.farmingList) {
+										if(vm.farmingList[i].farmingId == farmingId) {
+											vm.farmingList.splice(i, 1);
+										}
+									}
+									mui.toast('删除成功');
+								} else {
+									mui.toast('删除失败');
+								}
+							})
+						}
+					})
+				},
+				/**
+				 * 选择基地
+				 */
+				selectBase: function() {
+					offPullrefresh();
+					var vm = this;
+					var userPicker = new mui.PopPicker();
+					userPicker.show(function(items) {
+						vm.allBaseText = items[0].text;
+						vm.baseId = items[0].value;
+						vm.pageNum = 1;
+						onPullrefresh();
+						vm.queryFamingAppList(false);
+						console.log(vm.baseId)
+					});
+					userPicker.setData(vm.baseList);
+				},
+				/**
+				 * 获取基地选择列表
+				 */
+				getBaseList: function() {
+					var vm = this;
+					getDataList(APIURL + 'business/planBase/list', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								for(var i in d.aaData) {
+									var obj = {
+										value: d.aaData[i].baseId,
+										text: d.aaData[i].name
+									}
+									vm.baseList.push(obj);
+								}
+							}
+						}
+					});
+				},
+				/**
+				 * 选择操作人
+				 */
+				selectHandleUser: function() {
+					offPullrefresh();
+					var vm = this;
+					var userPicker = new mui.PopPicker();
+					userPicker.show(function(items) {
+						vm.userId = items[0].value;
+						vm.allUserText = items[0].text;
+						vm.pageNum = 1;
+						onPullrefresh();
+						vm.queryFamingAppList(false);
+						console.log(vm.userId)
+					});
+					userPicker.setData(vm.handleUserList);
+				},
+				/**
+				 * 获取人员选择列表
+				 */
+				getUserList: function() {
+					var vm = this;
+					getDataList(APIURL + 'business/user/list', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								for(var i in d.aaData) {
+									var obj = {
+										value: d.aaData[i].userId,
+										text: d.aaData[i].nickName
+									};
+									vm.handleUserList.push(obj);
+								}
+							}
+						}
+					})
+				},
+				/**
+				 * 农事类型选择
+				 */
+				selectFarmingType: function() {
+					offPullrefresh();
+					var vm = this;
+					vm.pageNum = 1;
+					var userPicker = new mui.PopPicker();
+					userPicker.show(function(items) {
+						vm.allTypeText = items[0].text;
+						vm.type = items[0].value;
+						vm.pageNum = 1;
+						onPullrefresh();
+						vm.queryFamingAppList(false);
+					});
+					userPicker.setData(vm.typeArr);
+				},
+				/**
+				 * 预览图片
+				 */
+				previewImage: function(urls,index) {
+					console.log(JSON.stringify(urls))
+					plus.nativeUI.previewImage(urls,{
+						current:index
+					});
+				}
+			}
+		});
+	</script>
+	<!--<script src="../js/immersed.js"></script>-->
+
+</html>

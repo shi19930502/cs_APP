@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="libs/css/mui.min.css">
+		<link rel="stylesheet" href="css/comm.css">
+		<link rel="stylesheet" href="css/index.css">
+	</head>
+
+	<body>
+		<div id="app">
+			<index-view></index-view>
+		</div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<!-- 底部导航 -->
+				<nav class="mui-bar mui-bar-tab">
+					<a id="defaultTab" class="mui-tab-item mui-active" href="pages/index_home.html">
+						<span class="mui-icon tabicon-home"></span>
+						<span class="mui-tab-label">首页</span>
+					</a>
+					<a class="mui-tab-item" href="pages/index_order.html">
+						<span class="mui-icon tabicon-dingd">
+            <!--<span class="mui-badge">9</span>--></span>
+						<span class="mui-tab-label">订单</span>
+					</a>
+					<a class="mui-tab-item" id="modalNav" href="pages/index_modal_nav.html">
+						<span class="mui-icon tabicon-add"></span>
+					</a>
+					<a class="mui-tab-item" href="pages/index_message.html">
+						<span class="mui-icon tabicon-message"></span>
+						<span class="mui-tab-label">消息</span>
+					</a>
+					<a class="mui-tab-item" href="pages/index_userInfo.html">
+						<span class="mui-icon tabicon-mine"></span>
+						<span class="mui-tab-label">我的</span>
+					</a>
+				</nav>
+			</div>
+		</script>
+
+		<script src="libs/js/mui.min.js"></script>
+		<script src="libs/js/vue.min.js"></script>
+		<script src="libs/js/jquery-3.2.0.min.js"></script>
+		<script src="js/update.js"></script>
+		<script src="js/comm.js"></script>
+		<script type="text/javascript">
+			console.log(localStorage.getItem('loginUserInfo'))
+			var _toast = false;
+
+			mui.back = function() {
+				if(!_toast) {
+					mui.toast('再按一次返回键退出');
+					_toast = true;
+				} else {
+					plus.runtime.quit();
+				}
+			} // 列表组件 
+			var vm = new Vue({
+				el: '#app',
+				data: {},
+				template: indexTpl,
+				data: function() {
+					return {
+						loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo'))
+					}
+				},
+				mounted: function() {
+					var vm = this;
+
+					mui.init({
+						swipeBack: false
+					});
+					var subpages = ['pages/index_home.html', 'pages/index_order.html', 'pages/index_message.html',
+						'pages/index_userInfo.html'
+					];
+					var subpage_style = {
+						top: '0px',
+						bottom: '52px'
+					};
+
+					var aniShow = {};
+
+					//创建子页面，首个选项卡页面显示，其它均隐藏；
+					mui.plusReady(function() {
+						// 判断用户是否登录
+						if(localStorage.getItem('loginUserInfo')) {
+							plus.navigator.setStatusBarBackground('#70C93E');
+							setTimeout(function() {
+								plus.navigator.closeSplashscreen();
+							}, 200);
+
+							var self = plus.webview.currentWebview();
+							for(var i = 0; i < 4; i++) {
+								var temp = {};
+								var sub = plus.webview.create(subpages[i], subpages[i], subpage_style);
+								if(i > 0) {
+									sub.hide();
+								} else {
+									temp[subpages[i]] = "true";
+									mui.extend(aniShow, temp);
+								}
+								self.append(sub);
+							}
+						} else {
+							mui.openWindow({
+								url: 'login.html',
+								id: 'login'
+							})
+						}
+					});
+					//当前激活选项
+					var activeTab = subpages[0];
+					var title = document.getElementById("title");
+					//选项卡点击事件
+					mui('.mui-bar-tab').on('tap', 'a', function(e) {
+						var targetTab = this.getAttribute('href');
+						if(targetTab === 'pages/index_home.html') {//首页数据跟新
+							// vm.getBaseInfo();
+							/**
+							 * 获取用户头像信息  
+							 */
+							getDataList(APIURL + 'business/user/list', {
+								userId: vm.loginUserInfo.userId,
+								enterpriseId: vm.loginUserInfo.enterpriseId
+							}, function(d) {
+								if(d && d.state === 0) {
+									vm.loginUserInfo.username = d.aaData[0].nickName
+									vm.loginUserInfo.headPortrait = d.aaData[0].headPortrait
+									var index_home = plus.webview.getWebviewById('pages/index_home.html')
+									mui.fire(index_home, "pageflowrefresh", d.aaData[0]);
+								}
+							})
+						}
+						if(targetTab === 'pages/index_userInfo.html') {//我的数据跟新
+							getDataList(APIURL + 'business/user/list', {
+								userId: vm.loginUserInfo.userId,
+								enterpriseId: vm.loginUserInfo.enterpriseId
+							}, function(d) {
+								if(d && d.state === 0) {
+									var index_userInfo = plus.webview.getWebviewById('pages/index_userInfo.html')
+									mui.fire(index_userInfo, "pageflowrefresh", d.aaData[0]);
+								}
+							})
+						}
+						if(targetTab !== 'pages/index_modal_nav.html') {
+							if(targetTab == activeTab) {
+								return;
+							}
+							//显示目标选项卡
+							//若为iOS平台或非首次显示，则直接显示
+							if(mui.os.ios || aniShow[targetTab]) {
+								plus.webview.show(targetTab);
+							} else {
+								//否则，使用fade-in动画，且保存变量
+								var temp = {};
+								temp[targetTab] = "true";
+								mui.extend(aniShow, temp);
+								plus.webview.show(targetTab, "fade-in", 300);
+							}
+							//隐藏当前;
+							plus.webview.hide(activeTab);
+							//更改当前活跃的选项卡
+							activeTab = targetTab;
+						} else if(targetTab === 'pages/index_modal_nav.html') {
+							mui.openWindow({
+								url: targetTab,
+								id: 'index_modal_nav',
+								show: {
+									autoShow: true, //页面loaded事件发生后自动显示，默认为true
+									aniShow: 'slide-in-bottom', //页面显示动画，默认为”slide-in-right“；
+								},
+								waiting: {
+									autoShow: false
+								},
+								styles: {
+									background: 'transparent',
+								}
+							})
+						}
+					});
+					//自定义事件，模拟点击“首页选项卡”
+					document.addEventListener('gohome', function() {
+						var defaultTab = document.getElementById("defaultTab");
+						//模拟首页点击
+						mui.trigger(defaultTab, 'tap');
+						//切换选项卡高亮
+						var current = document.querySelector(".mui-bar-tab>.mui-tab-item.mui-active");
+						if(defaultTab !== current) {
+							current.classList.remove('mui-active');
+							defaultTab.classList.add('mui-active');
+						}
+					});
+				},
+				methods: {
+					getBaseInfo: function() {
+						var vm = this;
+						getDataList(APIURL + 'business/planBase/list', {
+							enterpriseId: JSON.parse(localStorage.getItem('loginUserInfo')).enterpriseId
+						}, function(d) {
+							if(d && d.state === 0) {
+								console.log(JSON.stringify(d.aaData[0]))
+								localStorage.setItem('planBaseData', JSON.stringify(d.aaData[0]))
+							}
+						})
+					}
+				}
+			})
+		</script>
+	</body>
+
+</html>

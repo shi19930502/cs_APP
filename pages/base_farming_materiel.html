@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手投放品</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+		<style type="text/css">
+			.search-box {
+				margin: 10px 2%;
+				width: 96%;
+			}
+			.mui-table-view-cell {
+				margin-bottom: 0;
+			}
+			.mui-content {
+				padding-bottom: 53px;
+			}
+			.mui-btn-success,
+			.mui-bar .mui-btn {
+				padding: 6px 22px 3px;
+				background: #6EC73E;
+			}
+			.mui-bar .checkbox {
+				display: inline-block;
+				margin-top: 15px;
+			}
+			.mui-bar div:nth-child(2) {
+				text-align: right;
+				padding-right: 15px;
+			}
+			.mui-bar div:nth-child(1) {
+				padding-left: 15px;
+			}
+			.mui-bar div:nth-child(1) span {
+				position: absolute;
+				top: 15px;
+				left: 40px;
+			}
+			.mui-input-row {
+				border-bottom: 1px solid #c8c7cc;
+			}
+			.input-row {
+				height: 40px;
+				line-height: 40px;
+			}
+			.input-row label {
+				width: 70px;
+				text-align: right;
+				margin-right: 10px;
+			}
+			.input-row input {
+				height: 28px;
+				line-height: 28px;
+				font-size: 14px;
+				margin-top: 6px;
+				border-radius: 3px;
+				border: 1px solid #c8c7cc;
+				padding-left: 8px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<header class="mui-bar mui-bar-nav" id="header">
+					<div class="mui-action-back mui-pull-left navicon-back1"></div>
+					<h1 class="mui-title">添加投放品</h1>
+					<div class="mui-pull-right navicon-search" @tap="searchMateriel"></div>
+				</header>
+				<div class="mui-content">
+					<div class="mui-input-row mui-search search-box" v-show="isSearch">
+						<input type="search" placeholder="搜索农资" @input="search(event)">
+					</div>
+					<template v-if="materielList.length>0">
+						<ul class="mui-table-view">
+							<li class="mui-table-view-cell" v-for="(d,index) in materielList">
+								<div class="mui-row">
+									<div class="mui-col-xs-1">
+										<div class="checkbox" @tap="selectMateriel(event,index)" :packUnit="d.packUnit" :name="d.name" :id="index" :materielId='d.materielId'></div>
+									</div>
+									<div class="mui-col-xs-11">{{d.name}}</div>
+									<div class="mui-col-sm-8" style="padding: 10px; 20px" v-show="isInput[index]['isInput'+index]">
+										<div class="input-row bfc">
+											<label class="fl">使用量:</label>
+											<input class="mui-input-clear fl" v-if="isInput[index]['isInput'+index]" value="" placeholder="请输入" @input="setValue(event,'usage',index)">
+										</div>
+										<div class="input-row bfc">
+											<label class="fl">成本:</label>
+											<input class="mui-input-clear fl" v-if="isInput[index]['isInput'+index]" value="" placeholder="请输入" @input="setValue(event,'cost',index)">
+										</div>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</template>
+					<!--暂无数据-->
+					<template v-else>
+						<div class="nodata">
+							<img src="../images/nodata.png" />
+						</div>
+					</template>
+				</div>
+				<!-- 底部导航 -->
+				<nav class="mui-bar mui-bar-tab mui-row">
+					<div class="mui-col-xs-6">
+						<!--<div class="checkbox"></div>-->
+						<!--<span>全选</span>-->
+					</div>
+					<div class="mui-col-xs-6">
+						<button type="button" class="mui-btn mui-btn-success" @tap="saveAndBack">确定({{meterial.length}})</button>
+					</div>
+				</nav>
+			</div>
+		</script>
+
+	</body>
+	<script src="../libs/js/mui.min.js"></script>
+	<script src="../libs/js/vue.min.js"></script>
+	<script src="../js/comm.js"></script>
+
+	<script>
+		// 实例
+		var vm = new Vue({
+			el: '#app',
+			template: indexTpl,
+			data: function() {
+				return {
+					loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+					name: '', //（根据投放品名字查询----筛选条件）
+					pageSize: 10, //分页参数
+					pageNum: 1, //分页参数
+					pageTatol: 0,
+					materielList: [], // 投放品数据 
+					isSearch: false,
+					materielListTop: 'top: 69px',
+					// 投放物json字符串数组
+					meterial: [],
+					// 是否显示输入投方物数量
+					isInput: [],
+					inputContents: []
+				}
+			},
+			mounted: function() {
+				// 获取已经选择了的收件人过滤
+				mui.plusReady(function() {
+					var self = plus.webview.currentWebview();
+					if(self.meterial) {
+						for(var i in self.meterial) {
+							for(var j in vm.materielList) {
+								if(self.meterial[i].materielId == vm.materielList[j].materielId) {
+									vm.materielList.splice(j, 1)
+								}
+							}
+							console.log(JSON.stringify(self.meterial[i]))
+						}
+					}
+				})
+				this.queryMaterielList(false);
+			},
+			methods: {
+				/**
+				 * 获取投放品列表
+				 * @param {Boolean} isUp
+				 */
+				queryMaterielList: function(isUp) {
+					var vm = this;
+					getDataList(APIURL + 'business/materiel/getList', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+						name: vm.name,
+						pageSize: vm.pageSize,
+						pageNum: vm.pageNum
+					}, function(d) {
+						if(d.aaData && d.aaData.length > 0) {
+							if(isUp) {
+								vm.materielList = vm.materielList.concat(d.aaData);
+							} else {
+								vm.materielList = d.aaData;
+								for(var i = 0; i < vm.materielList.length; i++) {
+									var str = 'isInput' + i;
+									var obj = {};
+									var obj2 = {};
+
+									// 是否显示输入控件
+									obj[str] = false;
+									vm.isInput.push(obj);
+
+									// 输入值处理
+									obj2['usage' + i] = '';
+									obj2['cost' + i] = '';
+									vm.inputContents.push(obj2);
+
+								}
+
+								vm.pageTatol = Math.ceil(d.dataCount / vm.pageSize);
+							}
+						} else {
+							vm.materielList = [];
+						}
+					})
+				},
+				/**
+				 * 选择农资
+				 */
+				selectMateriel: function(e, index) {
+					var $this = e.target;
+					if($this.getAttribute('class') == 'checkbox') {
+						$this.setAttribute('class', 'checkboxed');
+						vm.isInput[index]['isInput' + index] = true;
+						// 封装选择的农资详细
+						var obj = {
+							id: $this.getAttribute('id'),
+							name: $this.getAttribute('name'), //投放物名称
+							usage: '', //使用量
+							packUnit: $this.getAttribute('packUnit'), //单位
+							cost: '', //成本
+							materielId: $this.getAttribute('materielId') - 0
+						}
+						vm.meterial.push(obj)
+					} else {
+						$this.setAttribute('class', 'checkbox');
+						vm.isInput[index]['isInput' + index] = false;
+						// 取消选择删除
+						for(var i in vm.meterial) {
+							if(vm.meterial[i].id = $this.getAttribute('id')) {
+								vm.meterial.splice(i, 1)
+							}
+						}
+					}
+				},
+				/**
+				 * 搜索农资
+				 */
+				searchMateriel: function() {
+					this.isSearch = true;
+					this.materielListTop = 'top: 119px';
+				},
+				/**
+				 * 输入搜索
+				 */
+				search: function(e) {
+					// 这里不用v-modle，不能清除输入内容
+					this.name = e.target.value;
+					console.log(this.name)
+
+					this.queryMaterielList(false);
+					// 清空搜索内容
+					this.name = '';
+				},
+				/**
+				 * 输入设置选择农资的用量
+				 * @param {Event} e
+				 * @param {String} type
+				 * @param {Number} index
+				 */
+				setValue: function(e, type, index) {
+					var reg = /^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/;
+					// 验证输入数字
+					if(!reg.test(e.target.value)) {
+						mui.alert('只能输入数字，请重新输入！');
+						e.target.value = '';
+					}
+					// 验证长度
+					if(e.target.value.length > 10) {
+						mui.alert('输入超长，请重新输入！');
+						e.target.value = ''
+					}
+					for(var i in this.meterial) {
+						if(this.meterial[i].id == index) {
+							this.meterial[i][type] = e.target.value;
+						}
+					}
+				},
+				/**
+				 * 保存选择农资的详细返回
+				 */
+				saveAndBack: function() {
+					var check = false;
+					if(this.meterial.length > 0) {
+						// 验证是否输入农资用量或成本
+						for(var i in this.meterial) {
+							if(this.meterial[i].usage == '' || this.meterial[i].cost == '') {
+								mui.alert('请输入农资用量或成本!')
+								check = false;
+								return false;
+							} else {
+								check = true
+							}
+						}
+						if(check) {
+							var view = plus.webview.currentWebview().opener();
+							mui.fire(view, 'doit', {
+								meterialStr: this.meterial
+							});
+							mui.back();
+						}
+					} else {
+						mui.alert('请选择农资')
+					}
+				}
+			}
+		});
+	</script>
+	<script src="../js/immersed.js"></script>
+
+</html>

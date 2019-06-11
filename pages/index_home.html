@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<!--<meta http-equiv="Access-Control-Allow-Origin" content="*">
+		<meta http-equiv="content-security-policy">   -->
+
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+		<link rel="stylesheet" href="../css/index_home.css">
+		<style type="text/css">
+			.mui-bar~.mui-content .mui-fullscreen {
+				top: 44px;
+				height: auto;
+			}
+			.mui-pull-top-tips {
+				position: absolute;
+				top: 320px;
+				left: 50%;
+				margin-left: -25px;
+				width: 40px;
+				height: 40px;
+				border-radius: 100%;
+				z-index: 1;
+			}
+			.mui-bar~.mui-pull-top-tips {
+				top: 24px;
+			}
+			.mui-pull-top-wrapper {
+				width: 42px;
+				height: 42px;
+				display: block;
+				text-align: center;
+				background-color: #efeff4;
+				border: 1px solid #ddd;
+				border-radius: 25px;
+				background-clip: padding-box;
+				box-shadow: 0 4px 10px #bbb;
+				overflow: hidden;
+			}
+			.mui-pull-top-tips.mui-transitioning {
+				-webkit-transition-duration: 200ms;
+				transition-duration: 200ms;
+			}
+			.mui-pull-top-tips .mui-pull-loading {
+				margin: 0;
+			}
+			.mui-pull-top-wrapper .mui-icon,
+			.mui-pull-top-wrapper .mui-spinner {
+				margin-top: 7px;
+			}
+			.mui-pull-bottom-tips {
+				text-align: center;
+				background-color: #efeff4;
+				font-size: 15px;
+				line-height: 40px;
+				color: #777;
+			}
+			.mui-pull-top-canvas {
+				overflow: hidden;
+				background-color: #fafafa;
+				border-radius: 40px;
+				box-shadow: 0 4px 10px #bbb;
+				width: 40px;
+				height: 40px;
+				margin: 0 auto;
+			}
+			.mui-pull-top-canvas canvas {
+				width: 40px;
+			}
+			.mui-slider-indicator.mui-segmented-control {
+				background-color: #efeff4;
+			}
+			.mui-media-object {
+				width: 50px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<header class="mui-bar mui-bar-nav" id="header">
+					<img @tap="openMenu" :src="headPortrait" alt="" width="40px" height="40px" style="margin-top: 2px;border-radius: 20px;" />
+					<div class="mui-pull-right navicon-saoma" @tap="toSaomaLogin"></div>
+					<h1 id="title" class="mui-title">{{planBaseData.name}}</h1>
+				</header>
+				<div class="mui-content">
+					<div class="banner">
+						<div class="mui-row">
+							<div class="mui-col-xs-2">
+								<div class="icon_zhuanhuan" @tap="toBaseChange()"></div>
+							</div>
+							<div class="mui-col-xs-5">
+								<div class="jidinfo">
+									<p>面积(亩)：<span>{{planBaseData.area}}</span></p>
+									<p class="mui-ellipsis">昼夜温差(°c)：<span>{{planBaseData.diurnalTemperatureDifference}}</span></p>
+								</div>
+							</div>
+							<div class="mui-col-xs-5">
+								<div class="jidinfo">
+									<p class="mui-ellipsis">海拔(m)：<span>{{planBaseData.altitude}}</span></p>
+									<p class="mui-ellipsis">平均气温(°c)：<span>{{planBaseData.averageTemperature}}</span></p>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 基地检测采收加工 -->
+					<div class="content2-list">
+						<div class="mui-row">
+							<div class="mui-col-sm-3 mui-col-xs-3" @tap="toFarmingList()">
+								<img src="../images/home_icon_jidi.png" width="50%" />
+								<h5>农事</h5>
+							</div>
+							<div class="mui-col-sm-3 mui-col-xs-3" @tap="toTestingList()">
+								<img src="../images/home_icon_jiance.png" width="50%" />
+								<h5>检测</h5>
+							</div>
+							<div class="mui-col-sm-3 mui-col-xs-3" @tap="toRecoveryList()">
+								<img src="../images/home_icon_caishou.png" width="50%" />
+								<h5>采收</h5>
+							</div>
+							<div class="mui-col-sm-3 mui-col-xs-3" @tap="toMachiningList">
+								<img src="../images/home_icon_jiagong.png" width="50%" />
+								<h5>加工</h5>
+							</div>
+						</div>
+					</div>
+					<!-- 采收种植农事记录 -->
+					<div id="slider" class="mui-slider">
+						<div id="sliderSegmentedControl" class="slider-nav mui-slider-indicator mui-segmented-control mui-segmented-control-inverted">
+							<a class="mui-control-item mui-active" href="#item1mobile">采收信息</a>
+							<a class="mui-control-item" href="#item2mobile">种植信息</a>
+							<a class="mui-control-item" href="#item3mobile">农事记录</a>
+						</div>
+						<div id="sliderProgressBar" class="mui-slider-progress-bar mui-col-xs-4">
+							<div class="inner-bar"></div>
+						</div>
+						<div class="mui-slider-group">
+							<!-- 采收信息列表 -->
+							<div id="item1mobile" class="mui-slider-item mui-control-content mui-active" :style="contentMinHeight">
+								<div id="scroll1" class="mui-scroll-wrapper">
+									<div class="mui-scroll">
+										<ul class="mui-table-view mbtenpx-list">
+											<li class="mui-table-view-cell mui-media" v-for="d in recoveryPlantData">
+												<div class="mui-row">
+													<div class="mui-col-sm-8 mui-col-xs-8">
+														<img class="mui-media-object mui-pull-left" :src="d.imgsrc" v-if="d.imgsrc">
+														<img class="mui-media-object mui-pull-left" src="../images/often.png" v-else>
+														<div class="mui-media-body">
+															<span class="fruit-name" style="font-size: 16px;">{{d.templeteName}}</span>
+															<p class='mui-ellipsis'>品种：<span class="blue-text">{{d.varietiesName}}</span></p>
+															<p class='mui-ellipsis'>种植时间：{{d.plantingTime}}</p>
+															<p class='mui-ellipsis'>种植标准：无公害</p>
+														</div>
+													</div>
+													<div class="mui-col-sm-4 mui-col-xs-4 right">
+														<div class="mui-pull-right">
+															<p class='mui-ellipsis'>采收 {{d.harvestBegin}}</p>
+															<p class='mui-ellipsis'>至 {{d.endHarvest}}</span>
+															</p>
+														</div>
+													</div>
+												</div>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<!-- 种植信息列表 -->
+							<div id="item2mobile" class="mui-slider-item mui-control-content" :style="contentMinHeight">
+								<div id="scroll2" class="mui-scroll-wrapper">
+									<div class="mui-scroll">
+										<div class="mui-loading" v-show="!isShowPlant">
+											<div class="mui-spinner"></div>
+										</div>
+										<ul class="mui-table-view mbtenpx-list" v-show="isShowPlant">
+											<li class="mui-table-view-cell mui-media" v-for="d in recoveryPlantData">
+												<div class="mui-row">
+													<div class="mui-col-sm-12 mui-col-xs-12">
+														<img class="mui-media-object mui-pull-left" :src="d.imgsrc" v-if="d.imgsrc">
+														<img class="mui-media-object mui-pull-left" src="../images/often.png" v-else>
+														<div class="mui-media-body">
+															<div class="bfc">
+																<span class="fruit-name fl" style="font-size: 16px;">{{d.templeteName}}</span>
+																<div class="fr" style="text-align: right;">
+																	<p>种植 {{d.plantingTime}}</p>
+																	<p>至 {{d.endPlanting}}</p>
+																</div>
+															</div>
+															<p class='mui-ellipsis'>品种：<span class="blue-text">{{d.varietiesName}}</span></p>
+															<p class='mui-ellipsis bfc'>
+																<span class="fl">生长时间：</span>
+																<span class="fr">{{d.szts}}天</span>
+															</p>
+															<div id="green-line-wraper" style="width: 100%;background: #efeff4;border-radius:4px;">
+																<div class="green-line" :style="d.szjd"></div>
+															</div>
+														</div>
+													</div>
+												</div>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<!-- 农事记录列表 -->
+							<div id="item3mobile" class="mui-slider-item mui-control-content" :style="contentMinHeight">
+								<div id="scroll3" class="mui-scroll-wrapper">
+									<div class="mui-scroll">
+										<div class="mui-loading" v-show="!showFarming">
+											<div class="mui-spinner"></div>
+										</div>
+
+										<ul class="mui-table-view mbtenpx-list" v-show="showFarming">
+											<li class="mui-table-view-cell mui-media" v-for="d in farmingList">
+												<div class="mui-row">
+													<div class="mui-col-sm-2 mui-col-xs-2">
+														<div class="user-headimg">
+															<img :src="d.imgsrc" v-if="d.picPhotoCode" />
+															<img src="../images/often.png" v-else/>
+														</div>
+													</div>
+													<div class="mui-col-sm-7 mui-col-xs-7 farming-type">
+														<div class="nstype">
+															<h5>
+																<strong>{{d.operationContent}}</strong>
+																<!--如果为农事计划-->
+																<span class="plan" v-if="d.type == 0">计划</span>
+															</h5>
+															<p>区域 <span class="blue-text">{{d.acreName}}</span></p>
+														</div>
+													</div>
+													<div class="mui-col-sm-3 mui-col-xs-3 farming-time">
+														<p>{{d.operatingDate}}</p>
+														<p>{{d.operationUsername}}</p>
+													</div>
+												</div>
+												<!--如果为农事记录有图-->
+												<div class="mui-row farming-imgs" v-if="d.type == 1">
+													<div class="mui-col-sm-4 mui-col-xs-4" v-for="item in d.farmthingImg">
+														<div class="imgwraper">
+															<img :src="item" />
+														</div>
+													</div>
+												</div>
+												<p style="margin-top: 12px;">投放品 {{d.materialNames}}</p>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>
+	</body>
+	<script src="../libs/js/mui.min.js"></script>
+	<script src="../libs/js/vue.min.js"></script>
+	<script src="../libs/js/mui.pullToRefresh.js"></script>
+	<script src="../libs/js/mui.pullToRefresh.material.js"></script>
+	<script src="../libs/js/update.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../js/comm.js"></script>
+	<script type="text/javascript">
+		var ws = null;
+		var vm = new Vue({
+			el: '#app',
+			template: indexTpl,
+			data: function() {
+				return {
+					// 登录用户信息
+					loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+					loginUserInfoDetail: {},
+					// 基地信息数据
+					planBaseData: {},
+					// 采收信息&种植信息数据
+					recoveryPlantData: [],
+					// 农事记录列表
+					farmingList: [],
+					// 动态获取content的高度
+					contentMinHeight: 'min-height:' + (window.screen.height - 380) + 'px',
+					isShowPlant: false,
+					showFarming: false,
+					pageNum: 1,
+					pageTatol: 0,
+					pageSize: 10,
+					baseId: '',
+					slideNumber: 0,
+					main_loaded_flag: false,
+					mainPage: null,
+					nwaiting: null,
+					headPortrait: '../images/often.png',
+					menu: null,
+					showMenu: false,
+				}
+			},
+			mounted: function() {
+				var vm = this;
+				var deceleration = mui.os.ios ? 0.003 : 0.0009;
+
+				mui.init({
+					swipeBack: false
+				});
+				//阻尼系数
+				mui('.mui-scroll-wrapper').scroll({
+					bounce: false,
+					indicators: true, //是否显示滚动条
+					deceleration: deceleration
+				});
+
+				mui.plusReady(function() {
+					ws = plus.webview.currentWebview();
+					ws.setStyle({
+						scrollIndicator: 'none'
+					});
+					setTimeout(function() {
+						//侧滑菜单默认隐藏，这样可以节省内存；
+						vm.menu = mui.preload({
+							id: 'index_menu.html',
+							url: 'index_menu.html',
+							styles: {
+								left: 0,
+								width: '70%',
+								zindex: 9997
+							}
+						});
+					}, 300);
+				})
+
+				mui.ready(function() {
+					//循环初始化所有下拉刷新，上拉加载。
+					mui.each(document.querySelectorAll('.mui-slider-group .mui-scroll'), function(index, pullRefreshEl) {
+						mui(pullRefreshEl).pullToRefresh({
+							down: {
+								callback: function() {
+									var self = this;
+									vm.pageNum = 1;
+									if(vm.slideNumber == 2) { //刷新农事数据
+										console.log(vm.baseId)
+										setTimeout(function() {
+											vm.getFamingAppList(false, vm.baseId, function() {
+												self.endPullDownToRefresh();
+											});
+										}, 1000);
+									} else { //刷新种植采收数据
+										setTimeout(function() {
+											vm.getPlantAppList(false, vm.baseId, function() {
+												self.endPullDownToRefresh();
+											});
+										}, 1000);
+									}
+								}
+							},
+							up: {
+								callback: function() {
+									var self = this;
+									++vm.pageNum;
+									if(vm.slideNumber == 2) {
+										vm.getFamingAppList(true, vm.baseId, function() {
+											self.endPullUpToRefresh(vm.pageNum > vm.pageTatol);
+										});
+									} else {
+										vm.getPlantAppList(true, vm.baseId, function() {
+											self.endPullUpToRefresh(vm.pageNum > vm.pageTatol);
+										});
+									}
+								}
+							}
+						});
+					});
+				});
+
+				/**
+				 * 获取用户头像信息  
+				 */
+				if(vm.loginUserInfo.headPortrait) {
+					vm.headPortrait = IMGURL + vm.loginUserInfo.headPortrait + '&image/jpeg';
+				}
+				/**
+				 * 获取banner基地数据
+				 */
+				vm.getPlanBaseInfo();
+				/**
+				 * 显示DOM
+				 */
+				var plantInfoView = document.getElementById('item2mobile');
+				var farmingRecordView = document.getElementById('item3mobile');
+				/**
+				 * 监听返回键按钮修改ShowMenu的值
+				 */
+				window.addEventListener('changeShowMenu', function(event) {
+					vm.showMenu = false;
+				});
+				/**
+				 * 监听用户信息变化
+				 */
+				window.addEventListener('pageflowrefresh', function(event) {
+					vm.loginUserInfoDetail = event.detail
+					if(vm.loginUserInfoDetail.headPortrait) {
+						vm.headPortrait = IMGURL + vm.loginUserInfoDetail.headPortrait + '&image/jpeg';
+					}
+				});
+				/**
+				 * 监听获取切换基地传参
+				 */
+				window.addEventListener('getItem', function(e) {
+					vm.planBaseData = e.detail.baseInfo;
+					vm.baseId = e.detail.baseInfo.baseId;
+					localStorage.setItem('planBaseData', JSON.stringify(e.detail.baseInfo))
+					vm.pageNum = 1;
+					// 获取种植采收信息数据
+					if(vm.slideNumber == 2) {
+						vm.getFamingAppList(false, vm.baseId)
+					} else {
+						vm.getPlantAppList(false, vm.baseId);
+					}
+				})
+				/**
+				 * 监听滑动事件
+				 */
+				document.getElementById('slider').addEventListener('slide', function(e) {
+					vm.pageNum = 1;
+					vm.slideNumber = e.detail.slideNumber;
+					if(e.detail.slideNumber === 1) {
+						if(plantInfoView.querySelector('.mui-loading')) {
+							vm.isShowPlant = true;
+							// 获取种植采收信息数据
+							vm.getPlantAppList(false, vm.baseId);
+						}
+					} else if(e.detail.slideNumber === 2) {
+						if(farmingRecordView.querySelector('.mui-loading')) {
+							vm.showFarming = true;
+							// 获取当前基地农事记录
+							vm.getFamingAppList(false, vm.baseId)
+						}
+					} else {
+						// 获取种植采收信息数据
+						vm.getPlantAppList(false, vm.baseId);
+					}
+				});
+			},
+			methods: {
+				// 获取种植采收信息列表
+				getPlantAppList: function(isPullRefresh, baseId, cb) {
+					var vm = this;
+					getDataList(APIURL + 'business/plant/queryPlantAppList', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+						pageSize: vm.pageSize,
+						pageNum: vm.pageNum,
+						baseId: baseId
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData && d.aaData.length > 0) {
+								// 处理图片路径
+								for(var i in d.aaData) {
+									// 处理图片路径
+									if(d.aaData[i].picPhotoCode) {
+										d.aaData[i].picPhotoCode = IMGURL + d.aaData[i].picPhotoCode + '&image/jpeg';
+									}
+									if(d.aaData[i].plantingTime && d.aaData[i].endPlanting) {
+										d.aaData[i].plantingTime = d.aaData[i].plantingTime.split(' ')[0];
+										d.aaData[i].endPlanting = d.aaData[i].endPlanting.split(' ')[0];
+										// 计算生长天数
+										d.aaData[i].szts = vm.DateDiff(d.aaData[i].plantingTime, d.aaData[i].endPlanting);
+										// 计算当前第几天百分数
+										var cd = vm.getNowFormatDate().split(' ')[0];
+										d.aaData[i].cday = vm.DateDiff(d.aaData[i].plantingTime, cd);
+										d.aaData[i].szjd = 'width:' + (d.aaData[i].cday / d.aaData[i].szts).toFixed(2) * 100 + '%;';
+									}
+								}
+
+								// 判断是否下拉刷新分页
+								if(isPullRefresh) {
+									vm.recoveryPlantData = vm.recoveryPlantData.concat(d.aaData);
+								} else {
+									vm.recoveryPlantData = d.aaData;
+									vm.pageTatol = Math.ceil(d.dataCount / vm.pageSize);
+								}
+							} else {
+								if(!isPullRefresh) {
+									vm.recoveryPlantData = [];
+									mui.toast('没有更多数据了');
+								}
+							}
+						}
+						// 关闭刷新控件
+						cb && cb();
+					})
+				},
+				/**
+				 * 获取基地信息
+				 */
+				getPlanBaseInfo: function() {
+					var vm = this;
+					/**
+					 * 获取基地信息
+					 */
+					getDataList(APIURL + 'business/planBase/list', {
+						enterpriseId: JSON.parse(localStorage.getItem('loginUserInfo')).enterpriseId
+					}, function(d) {
+						if(d && d.state === 0) {
+							localStorage.setItem('planBaseData', JSON.stringify(d.aaData[0]))
+							vm.planBaseData = d.aaData[0];
+							vm.baseId = vm.planBaseData.baseId;
+							// 获取种植采收信息数据
+							vm.getPlantAppList(false, vm.baseId);
+						}
+					})
+				},
+				/**
+				 * 获取当前基地农事记录
+				 */
+				getFamingAppList: function(isPullRefresh, baseId, cb) {
+					var vm = this;
+					getDataList(APIURL + 'business/farming/queryFamingAppList', {
+						pageSize: vm.pageSize,
+						pageNum: vm.pageNum,
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+						// baseId: baseId
+					}, function(d) {
+						console.log(JSON.stringify(d))
+						if(d && d.state === 0) {
+							if(d.aaData && d.aaData.length > 0) {
+								for(var i in d.aaData) {
+									// 处理时间
+									if(d.aaData[i].operatingDate) {
+										d.aaData[i].operatingDate = d.aaData[i].operatingDate.split(' ')[0]
+									}
+									// 处理图片路径
+									d.aaData[i].imgsrc = IMGURL + d.aaData[i].picPhotoCode + '&image/jpeg';
+									// 处理投放品
+									if(d.aaData[i].materialName) {
+										d.aaData[i].materialNames = d.aaData[i].materialName.join(',');
+									}
+									// 处理农事图片
+									var photos = [];
+									if(d.aaData[i].photopathcode) {
+										photos = d.aaData[i].photopathcode.split(',');
+										for(var j in photos) {
+											photos[j] = IMGURL + photos[j] + '&image/jpeg'
+										}
+									}
+									d.aaData[i].farmthingImg = photos;
+								}
+								vm.isShowFarming = true;
+								// 判断是否下拉刷新分页
+								if(isPullRefresh) {
+									vm.farmingList = vm.farmingList.concat(d.aaData);
+								} else {
+									vm.farmingList = d.aaData;
+									vm.pageTatol = Math.ceil(d.dataCount / vm.pageSize);
+								}
+							} else {
+								if(!isPullRefresh) {
+									vm.farmingList = [];
+									mui.toast('没有更多数据了')
+								}
+							}
+						}
+						// 关闭刷新控件
+						cb && cb();
+					})
+				},
+				/**
+				 * 跳转基地切换页面
+				 */
+				toBaseChange: function() {
+					mui.openWindow({
+						url: 'base_list.html',
+						id: 'base_list',
+						extras: {
+							type: 'change'
+						},
+						styles: {
+							titleNView: { // 窗口的标题栏控件
+								titleText: "切换基地",
+								backgroundColor: "#70C93E",
+								titleColor: "#fff",
+								autoBackButton: true,
+								titleSize: "18px",
+							}
+						}
+					})
+				},
+				/**
+				 * 跳转基地列表页面
+				 */
+				toBaseMain: function() {
+					mui.openWindow({
+						url: 'base_main.html',
+						id: 'base_main'
+					})
+				},
+				/**
+				 * 跳转农事列表
+				 */
+				toFarmingList: function() {
+					mui.openWindow({
+						url: 'base_farming.html',
+						id: 'base_farming',
+						styles: {
+							titleNView: { // 窗口的标题栏控件
+								titleText: "农事",
+								backgroundColor: "#70C93E",
+								titleColor: "#fff",
+								autoBackButton: true,
+								titleSize: "18px",
+							}
+						}
+					})
+				},
+				/**
+				 * 跳转检测列表页面
+				 */
+				toTestingList: function() {
+					mui.openWindow({
+						url: 'testing_list.html',
+						id: 'testing_list',
+						styles: {
+							titleNView: { // 窗口的标题栏控件
+								titleText: "检测",
+								backgroundColor: "#70C93E",
+								titleColor: "#fff",
+								autoBackButton: true,
+								titleSize: "18px",
+							}
+						}
+					})
+				},
+				/**
+				 * 跳转采收列表页面
+				 */
+				toRecoveryList: function() {
+					mui.openWindow({
+						url: 'recovery_list.html',
+						id: 'recovery_list',
+						styles: {
+							titleNView: { // 窗口的标题栏控件
+								titleText: "采收",
+								backgroundColor: "#70C93E",
+								titleColor: "#fff",
+								autoBackButton: true,
+								titleSize: "18px",
+							}
+						}
+					})
+				},
+				/**
+				 * 跳转加工列表页面
+				 */
+				toMachiningList: function() {
+					var vm = this;
+					vm.nwaiting = plus.nativeUI.showWaiting();
+					vm.mainPage = plus.webview.getWebviewById("machining_main");
+					if(!vm.mainPage) {
+						vm.mainPage = mui.preload({
+							id: 'machining_main',
+							url: 'machining_main.html',
+						});
+					} else {
+						vm.main_loaded_flag = true;
+					}
+					vm.mainPage.addEventListener("loaded", function() {
+						setTimeout(function() {
+							vm.main_loaded_flag = true;
+						}, 500)
+					});
+					var id = setInterval(function() {
+						if(vm.main_loaded_flag) {
+							clearInterval(id);
+							vm.nwaiting.close();
+							mui.fire(vm.mainPage, 'show', null);
+							vm.mainPage.show("slide-in-right");
+						}
+					}, 20);
+				},
+				/**
+				 * 扫码登录
+				 */
+				toSaomaLogin: function() {
+					var vm = this;
+					mui.openWindow({
+						url: 'barcode_scan.html',
+						id: 'barcode_scan',
+						extras: {
+							loginUserInfo: vm.loginUserInfo
+						}
+					})
+				},
+				/**
+				 * 跳转搜索页面
+				 */
+				toSearch: function() {
+					mui.openWindow({
+						url: 'search.html',
+						id: 'search'
+					})
+				},
+				/**
+				 * 计算天数差的函数，通用 
+				 * @param {Object} sDate1
+				 * @param {Object} sDate2
+				 */
+				DateDiff: function(sDate1, sDate2) { //sDate1和sDate2是2006-12-18格式  
+					var aDate, oDate1, oDate2, iDays
+					aDate = sDate1.split("-")
+					oDate1 = new Date(aDate[1] + '-' + aDate[2] + '-' + aDate[0]) //转换为12-18-2006格式  
+					aDate = sDate2.split("-")
+					oDate2 = new Date(aDate[1] + '-' + aDate[2] + '-' + aDate[0])
+					iDays = parseInt(Math.abs(oDate1 - oDate2) / 1000 / 60 / 60 / 24) //把相差的毫秒数转换为天数  
+					return iDays
+				},
+				/**
+				 * 获取当前日期
+				 */
+				getNowFormatDate: function() {
+					var date = new Date();
+					var seperator1 = "-";
+					var seperator2 = ":";
+					var month = date.getMonth() + 1;
+					var strDate = date.getDate();
+					if(month >= 1 && month <= 9) {
+						month = "0" + month;
+					}
+					if(strDate >= 0 && strDate <= 9) {
+						strDate = "0" + strDate;
+					}
+					var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate +
+						" " + date.getHours() + seperator2 + date.getMinutes() +
+						seperator2 + date.getSeconds();
+					return currentdate;
+				},
+				/**
+				 * 打开侧滑菜单
+				 */
+				openMenu: function() {
+					var vm = this;
+
+					if(!vm.showMenu) {
+						mui.fire(vm.menu, 'userInfo', vm.loginUserInfoDetail);
+						vm.menu.show('none', 0, function() {
+							vm.menu.setStyle({
+								left: '0%',
+								transition: {
+									duration: 150
+								}
+							});
+						});
+					}
+					vm.createMaskInparentWin();
+					vm.showMenu = true;
+				},
+				/**
+				 * 关闭侧滑菜单
+				 */
+				closeMenu: function() {
+					var vm = this;
+					if(vm.showMenu) {
+						getDataList(APIURL + 'business/user/list', {
+							userId: vm.loginUserInfo.userId,
+							enterpriseId: vm.loginUserInfo.enterpriseId
+						}, function(d) {
+							if(d && d.state === 0) {
+								vm.loginUserInfo.username = d.aaData[0].nickName
+								if(d.aaData[0].headPortrait) {
+									vm.headPortrait = IMGURL + d.aaData[0].headPortrait + '&image/jpeg';
+								}
+							}
+						})
+
+						mui.fire(ws.opener(), 'closeMask', 'true');
+						vm.menu.setStyle({
+							left: '-70%',
+							transition: {
+								duration: 150
+							}
+						});
+
+					}
+					//等窗体动画结束后，隐藏菜单webview，节省资源；
+					setTimeout(function() {
+						vm.menu.hide();
+					}, 200);
+					//改变标志位
+					vm.showMenu = false;
+				},
+				/**
+				 * 在父窗口创建一个遮罩
+				 */
+				createMaskInparentWin: function() {
+					var vm = this;
+					var parent = ws.opener();
+					parent.setStyle({
+						mask: 'rgba(0,0,0,0.5)'
+					});
+					// 点击关闭遮罩层
+					parent.addEventListener('maskClick', function() {
+						vm.closeMenu();
+
+						parent.setStyle({
+							mask: 'none'
+						});
+
+					}, false);
+				}
+			}
+		});
+	</script>
+	<script src="../js/immersed.js"></script>
+
+</html>

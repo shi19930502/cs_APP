@@ -1,0 +1,423 @@
+.bfc {
+	overflow: hidden;
+	list-style: none;
+}
+.bfc li {
+	float: left;
+}
+.fl {
+	float: left;
+}
+.fr {
+	float: right;
+}
+
+/*tile*/
+
+.mui-bar .mui-title {
+	right: 70px;
+	left: 70px;
+}
+
+/*按钮*/
+
+.mui-btn-success,
+.mui-bar .mui-btn {
+	padding: 6px 22px 2px;
+	background: #6EC73E;
+}
+
+/***********************************************头部导航样式*/
+
+.mui-bar-nav {
+	background: #70C93E;
+}
+.mui-bar h1.mui-title {
+	color: #FFFFFF;
+	font-weight: bold;
+}
+.mui-bar-nav {
+	box-shadow: none;
+}
+
+/*扫码图标*/
+
+.navicon-saoma {
+	display: inline-block;
+	width: 24px;
+	height: 24px;
+	background: url("../images/home_navicon_saoma.png");
+	background-size: 100% 100%;
+	margin-top: 10px;
+}
+
+/*搜索图标*/
+
+.navicon-search {
+	display: inline-block;
+	width: 24px;
+	height: 24px;
+	background: url("../images/home_navicon_search.png");
+	background-size: 100% 100%;
+	margin-top: 10px;
+}
+
+/*搜索框*/
+
+.search-box {
+	margin-top: 1px;
+}
+.search-box input[type=search] {
+	background: #fff;
+	font-size: 14px;
+	border-radius: 17px;
+}
+.mui-search .mui-placeholder span:nth-child(2) {
+	margin-left: 5px;
+	font-size: 14px;
+}
+
+/*返回按钮*/
+
+.back-text {
+	font-size: 18px;
+	color: #fff;
+	height: 45px;
+	line-height: 46px;
+	margin-left: -5px;
+}
+
+/*返回图标*/
+
+.navicon-back1 {
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	background: url("../images/qhjd_icon_back.png") no-repeat;
+	background-size: auto 100%;
+	margin-top: 13px;
+	margin-left: 8px;
+}
+
+/*添加图标*/
+
+.navicon-add {
+	display: inline-block;
+	width: 24px;
+	height: 24px;
+	background: url("../images/qhjd_icon_add.png");
+	background-size: 100% 100%;
+	margin-top: 10px;
+}
+
+/*编辑图标*/
+
+.navicon-edit {
+	display: inline-block;
+	width: 24px;
+	height: 24px;
+	background: url(../images/mine_icon_edit.png);
+	background-size: 100% 100%;
+	margin-top: 10px;
+}
+
+/*设置图标*/
+
+.navicon-setting {
+	display: inline-block;
+	width: 24px;
+	height: 24px;
+	background: url(../images/mine_icon_setting.png);
+	background-size: 100% 100%;
+	margin-top: 10px;
+}
+
+/*复选框*/
+
+.checkbox {
+	width: 20px;
+	height: 20px;
+	background: url("../images/qhjd_checkbox.png");
+	background-size: 100% 100%;
+	/*margin-top: 33px;*/
+}
+.checkboxed {
+	width: 20px;
+	height: 20px;
+	background: url("../images/qhjd_checkbox_a.png");
+	background-size: 100% 100%;
+	/*margin-top: 33px;*/
+}
+
+/***********************************************底部导航样式*/
+
+.mui-bar-tab .mui-tab-item.mui-active {
+	color: #6ec73e;
+}
+
+/***********************************************图文列表*/
+
+.mui-table-view-cell:after {
+	left: 0;
+}
+.mui-table-view {
+	background-color: #efeff4;
+}
+.mui-table-view-cell {
+	margin-bottom: 10px;
+	background: #fff;
+}
+.mui-table-view .mui-media-object {
+	line-height: 80px;
+	max-width: 80px;
+	height: 80px;
+	border-radius: 3px;
+}
+
+/*下边距为10px的列表*/
+
+
+/*列表的上边距为0*/
+
+.mbtenpx-list .mui-table-view-cell {
+	background: #fff;
+	position: relative;
+	padding-bottom: 55px;
+}
+.mbtenpx-list {
+	margin-top: 0 !important;
+}
+.mbtenpx-list span.fruit-name {
+	font-size: 16px;
+	padding-bottom: 12px;
+	display: inline-block;
+}
+.mbtenpx-list p {
+	font-size: 12px;
+	line-height: 16px;
+}
+.mbtenpx-list .mui-row .right p {
+	text-align: right;
+}
+
+/*图文列表下的编辑按钮*/
+
+.edit-item {
+	width: 100%;
+	position: absolute;
+	border-top: 1px solid #c8c7cc;
+	left: 0;
+	bottom: 0;
+	padding-left: 15px;
+}
+.edit-item h6 {
+	height: 34px;
+	line-height: 34px;
+}
+.edit-item h6:nth-child(2),
+.edit-item h6:nth-child(3) {
+	text-align: right;
+	padding-right: 15px;
+}
+.edit-item h6:nth-child(2),
+.edit-item h6:last-child {
+	color: #4c4c4c;
+}
+.edit-item .mui-icon {
+	color: #4c4c4c;
+	font-weight: bold;
+	margin-right: 3px;
+}
+
+/*蓝色字体*/
+
+.mbtenpx-list .blue-text {
+	color: #3ed4ff;
+}
+
+/***********************************************表单*/
+
+.mbtenpx {
+	margin-bottom: 10px;
+}
+.mui-input-group .mui-input-row {
+	height: 45px;
+	line-height: 45px;
+}
+.mui-input-group .mui-input-row input {
+	height: 45px;
+}
+.mui-input-row .mui-input-password~.mui-icon-eye,
+.mui-input-row .mui-input-speech~.mui-icon-speech {
+	top: 13px;
+}
+.mui-input-row label {
+	padding: 14px 15px;
+}
+
+/*下边线从最左边开始*/
+
+.mui-input-group .mui-input-row:after {
+	left: 0;
+}
+.mui-input-row span.select-text {
+	padding-right: 40px;
+	text-align: right;
+	width: 60%;
+}
+.mui-navigate-right:after,
+.mui-push-left:after,
+.mui-push-right:after {
+	top: 48%;
+}
+.mui-navigate-right:after,
+.mui-push-left:after,
+.mui-push-right:after {
+	color: #000;
+	font-size: 20px;
+}
+.textarea-row {
+	height: 90px !important;
+}
+.mui-input-row input {
+	/*text-align: right;*/
+}
+
+/***********************************************组件样式*/
+
+
+/**
+ * 查询条件组件
+ */
+
+.query-condition-warpper {
+	border-bottom: 1px solid #ddd;
+	background: #fff;
+}
+.query-condition-warpper div {
+	font-size: 16px;
+	height: 40px;
+	line-height: 40px;
+	text-align: center;
+	/*background: url(../images/jidi_icon_down.png) right 14px center no-repeat;
+	background-size: 8px 4px;*/
+}
+.query-condition-warpper div img {
+	vertical-align: middle;
+	margin-left: 5px;
+}
+.query-condition-warpper div a {
+	color: #4c4c4c;
+}
+.query-condition-warpper div:nth-child(2) {
+	padding-right: 2px;
+}
+.query-condition-warpper span {
+	text-decoration: underline;
+}
+
+/**
+ * 全部 选择查询日期
+ */
+
+.select-date {
+	padding: 10px 15px;
+}
+.select-date div:nth-child(1) {
+	color: #4c4c4c;
+}
+.select-date div:nth-child(2),
+.select-date div:nth-child(3),
+.select-date div:nth-child(4) {
+	font-size: 14px;
+	text-align: center;
+}
+
+/*全部日期*/
+
+.select-date span.alldate {
+	font-size: 14px;
+	color: #70C93E;
+}
+.select-date div:last-child {
+	text-align: right;
+}
+
+/*.select-date div:nth-child(1) {
+	position: absolute;
+	left: 15px;
+	padding-top: 2px;
+}*/
+
+
+/*******************************************************暂无数据*/
+
+.nodata {
+	padding: 50px 0;
+	width: 100%;
+	text-align: center;
+}
+.nodata img {
+	width: 110px;
+}
+
+/*******************************************************选择框样式表*/
+
+
+/*蒙层阴影*/
+
+.mui-backdrop {
+	background-color: rgba(0, 0, 0, .5);
+}
+.mui-dtpicker-header button.mui-btn,
+.mui-btn-blue,
+.mui-btn-primary,
+input[type=submit],
+.mui-btn.mui-poppicker-btn-cancel {
+	color: #6EC73E;
+	border: none;
+	background: none;
+	font-size: 16px !important;
+}
+.list-title {
+	background: #ffffff;
+	height: 40px;
+	line-height: 40px;
+	border-bottom: 1px solid #cccccc;
+	padding-left: 15px;
+}
+.clearfix:before,
+.clearfix:after {
+	display: table;
+	content: " ";
+}
+.clearfix:after {
+	clear: both;
+}
+.list-item-name,
+.list-item-price,
+.list-item-count,
+.list-item-total-price {
+	float: left;
+}
+.list-item-name {
+	width: 40%;
+}
+.list-item-price,
+.list-item-count,
+.list-item-total-price {
+	width: 20%;
+}
+.list-item-price span,
+.list-item-count span,
+.list-item-total-price span {
+	float: right;
+}
+.ul-list-item {
+	margin-bottom: 0;
+}
+.mui-input-row .mui-input-clear~.mui-icon-clear,
+.mui-input-row .mui-input-password~.mui-icon-eye,
+.mui-input-row .mui-input-speech~.mui-icon-speech {
+	top: 13px;
+}

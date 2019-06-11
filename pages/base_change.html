@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+		<style type="text/css">
+			/*去掉ul上边线*/
+			
+			.mui-table-view:before {
+				background-color: #fff;
+			}
+			
+			.mui-table-view {
+				background-color: #efeff4;
+			}
+			/*列表下边距0*/
+			
+			.mui-table-view-cell {
+				background: #fff;
+				position: relative;
+				padding-bottom: 55px;
+			}
+			/*基地面积*/
+			
+			.base-area {
+				width: 50px;
+				height: 16px;
+				line-height: 16px;
+				background: #3ED4FF;
+				border-radius: 4px;
+				color: #fff;
+				text-align: center !important;
+			}
+			/*当前选择*/
+			
+			.app-checkboxed {
+				width: 18px;
+				height: 18px;
+				background: url("../images/qhjd_checkbox_a.png");
+				background-size: 100% 100%;
+				margin-top: 33px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav" id="header">
+			<div class="mui-action-back mui-pull-left navicon-back1"></div>
+			<div class="mui-action-back mui-pull-left back-text">返回</div>
+			<h1 class="mui-title">切换基地</h1>
+			<div class="mui-pull-right navicon-add"></div>
+		</header>
+		<div class="mui-content">
+			<ul class="mui-table-view mbtenpx-list">
+				<li class="mui-table-view-cell mui-media">
+					<div class="mui-row">
+						<div class="mui-col-sm-1 mui-col-xs-1">
+							<div class="app-checkboxed"></div>
+						</div>
+						<div class="mui-col-sm-10 mui-col-xs-10">
+							<img class="mui-media-object mui-pull-left" src="../images/putao.png">
+							<div class="mui-media-body">
+								<span class="fruit-name" style="font-size: 16px;">新疆葡萄</span>
+								<p class='mui-ellipsis'>海拔：12111212km</p>
+								<p class='mui-ellipsis'>经纬度：120.45,70.25</p>
+								<p class='mui-ellipsis'>降水：66660 m/l || 温差 20</p>
+							</div>
+						</div>
+						<div class="mui-col-sm-1 mui-col-xs-1 right">
+							<div class="mui-pull-right">
+								<p class='mui-ellipsis base-area'>36亩</p>
+							</div>
+						</div>
+					</div>
+					<div class="mui-row edit-item">
+						<h6 class="mui-col-sm-6 mui-col-xs-6">创建时间  2017-10-14</h6>
+						<h6 class="mui-col-sm-3 mui-col-xs-3"><span class="mui-icon mui-icon mui-icon-compose"></span>编辑</h6>
+						<h6 class="mui-col-sm-3 mui-col-xs-3"><span class="mui-icon mui-icon mui-icon mui-icon-trash"></span>删除</h6>
+					</div>
+				</li>
+				<li class="mui-table-view-cell mui-media">
+					<div class="mui-row">
+						<div class="mui-col-sm-9 mui-col-xs-9">
+							<img class="mui-media-object mui-pull-left" src="../images/putao.png">
+							<div class="mui-media-body">
+								<span class="fruit-name" style="font-size: 16px;">新疆葡萄</span>
+								<p class='mui-ellipsis'>海拔：12111212km</p>
+								<p class='mui-ellipsis'>经纬度：120.45,70.25</p>
+								<p class='mui-ellipsis'>降水：66660 m/l | 温差 20</p>
+							</div>
+						</div>
+						<div class="mui-col-sm-3 mui-col-xs-3 right">
+							<div class="mui-pull-right">
+								<p class='mui-ellipsis base-area'>36亩</p>
+
+							</div>
+						</div>
+					</div>
+					<div class="mui-row edit-item">
+						<h6 class="mui-col-sm-6 mui-col-xs-6">创建时间  2017-10-14</h6>
+						<h6 class="mui-col-sm-3 mui-col-xs-3"><span class="mui-icon mui-icon mui-icon-compose"></span>编辑</h6>
+						<h6 class="mui-col-sm-3 mui-col-xs-3"><span class="mui-icon mui-icon mui-icon mui-icon-trash"></span>删除</h6>
+					</div>
+				</li>
+			</ul>
+		</div>
+		<script src="../libs/js/mui.min.js"></script>
+		<script src="../js/immersed.js"></script>
+	</body>
+
+</html>

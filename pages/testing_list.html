@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+		<style type="text/css">
+			.blue-text.hege-text {
+				margin-top: 18px;
+			}
+			.imges_box {
+				width: 100%;
+				padding: 5px;
+			}
+			.imges_box img {
+				max-width: 40%;
+				max-height: 10%;
+				float: left;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<div id="pullrefresh" class="mui-content mui-scroll-wrapper">
+					<div class="mui-scroll">
+						<ul class="mui-table-view mbtenpx-list">
+							<li class="mui-table-view-cell mui-media" v-for="el in dataList">
+								<div class="mui-row">
+									<div class="mui-col-sm-8 mui-col-xs-8">
+										<!--<img class="mui-media-object mui-pull-left" src="../images/often.png">-->
+										<div class="mui-media-body">
+											<span class="fruit-name" style="font-size: 16px;">{{el.sampleName}}</span>
+											<p class='mui-ellipsis'>入库批次：{{el.batchId}}</p>
+											<p class='mui-ellipsis'>样品编号：{{el.no}}</p>
+											<p class='mui-ellipsis'>检测值：{{el.detectionValue}}</p>
+										</div>
+										<div class="mui-row imges_box">
+											<img :src="el.imgurl" alt="" @tap="previewImage(el.imgurl)" />
+										</div>
+									</div>
+									<div class="mui-col-sm-4 mui-col-xs-4 right">
+										<div class="mui-pull-right">
+											<p class='mui-ellipsis'>{{el.testTime.split(' ')[0]}}</p>
+											<h4 class="blue-text hege-text">{{el.result}}</h4>
+										</div>
+									</div>
+								</div>
+								<div class="mui-row edit-item">
+									<h6 class="mui-col-sm-6 mui-col-xs-6">检测机构： {{el.company}}</h6>
+									<h6 class="mui-col-sm-3 mui-col-xs-3" @tap="edite(el.batchId)"><span class="mui-icon mui-icon mui-icon-compose"></span>编辑</h6>
+									<h6 class="mui-col-sm-3 mui-col-xs-3" @tap="del(el.testId)"><span class="mui-icon mui-icon mui-icon mui-icon-trash"></span>删除</h6>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</script>
+	</body>
+	<script src="../libs/js/mui.min.js"></script>
+	<script src="../libs/js/vue.min.js"></script>
+	<script src="../js/comm.js"></script>
+	<script type="text/javascript">
+		var vm = new Vue({
+			el: '#app',
+			template: indexTpl,
+			data: function() {
+				return {
+					dataList: [],
+					pageNum: 1,
+					pageTatol: 0,
+					pageSize: 10,
+					loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+				}
+			},
+			mounted: function() {
+				var vm = this
+				// 监听refresh事件刷新页面
+				window.addEventListener('refresh', function(e) {
+					vm.pageNum = 1;
+					vm.getTestList(false);
+				})
+				/**
+				 * 下拉分页
+				 */
+				mui.init({
+					swipeBack: false,
+					pullRefresh: {
+						container: '#pullrefresh',
+						down: {
+							style: 'circle',
+							auto: true,
+							callback: function() {
+								vm.pageNum = 1;
+								vm.getTestList(false, function() {
+									mui('#pullrefresh').pullRefresh().endPulldown();
+								});
+							}
+						},
+						up: {
+							contentrefresh: '正在加载...',
+							callback: function() {
+								++vm.pageNum;
+								vm.getTestList(true);
+								mui('#pullrefresh').pullRefresh().endPullupToRefresh((vm.pageNum > vm.pageTatol));
+							}
+						}
+					}
+				});
+				mui.plusReady(function() {
+					var self = plus.webview.currentWebview();
+					var titleView = self.getNavigationbar();
+					if(!titleView) {
+						titleView = plus.webview.getLaunchWebview().getNavigationbar();
+					}
+					//开启回弹
+					self.setStyle({
+						bounce: "vertical",
+						bounceBackground: "#ffffff",
+					});
+					// 绘制添加按钮
+					titleView.drawText('添加', {
+						top: "10px",
+						right: "10px",
+						height: "24px"
+					}, {
+						align: 'right',
+						color: '#fff',
+						size: '17px'
+					});
+					// 是否拦截View控件的触屏事件
+					titleView.interceptTouchEvent(true);
+					// 下一步点击事件
+					titleView.addEventListener("click", function(e) {
+						var x = e.clientX;
+						if(x > 300) {
+							vm.toTesttingAdd();
+						}
+					})
+				})
+			},
+			methods: {
+				/**
+				 * 跳转新增检测
+				 */
+				toTesttingAdd: function() {
+					mui.openWindow({
+						url: 'testting_add.html',
+						id: 'testting_add',
+						styles: {
+							titleNView: { // 窗口的标题栏控件
+								titleText: "新增检测",
+								backgroundColor: "#70C93E",
+								titleColor: "#fff",
+								autoBackButton: true,
+								titleSize: "18px",
+							}
+						}
+					})
+				},
+				/**
+				 * 编辑
+				 * @param {Object} batchid
+				 */
+				edite: function(batchid) {
+					mui.openWindow({
+						url: 'testting_add.html',
+						id: 'testting_add',
+						extras: {
+							batchid: batchid
+						},
+						styles: {
+							titleNView: { // 窗口的标题栏控件
+								titleText: "编辑检测",
+								backgroundColor: "#70C93E",
+								titleColor: "#fff",
+								autoBackButton: true,
+								titleSize: "18px",
+							}
+						}
+					})
+				},
+				/**
+				 * 获取检测列表数据
+				 * @param {Object} isUp
+				 * @param {Object} cb
+				 */
+				getTestList: function(isUp, cb) {
+					var vm = this;
+					getDataList(APIURL + 'business/test/list', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+						pageSize: vm.pageSize,
+						pageNum: vm.pageNum
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData && d.aaData.length > 0) {
+								// 处理图片显示
+								for(var i in d.aaData) {
+									if(d.aaData[i].photo) {
+										d.aaData[i].imgurl = IMGURL + d.aaData[i].photo + '&image/jpeg';
+									}
+								}
+
+								if(isUp) {
+									vm.dataList = vm.dataList.concat(d.aaData);
+								} else {
+									vm.dataList = d.aaData;
+									vm.pageTatol = Math.ceil(d.dataCount / vm.pageSize);
+								}
+							} else {
+								if(!isUp) {
+									vm.dataList = [];
+								}
+								mui.toast('没有更多数据了');
+							}
+						}
+						cb && cb();
+					})
+				},
+				/**
+				 * 删除
+				 * @param {Object} id
+				 */
+				del: function(id) {
+					var vm = this;
+					var msg = '确认删除?';
+					var title = '提示';
+					var btnValue = ['确认', '取消'];
+					mui.confirm(msg, title, btnValue, function(e) {
+						if(e.index == 0) {
+							getDataList(APIURL + 'business/test/deleteByGuid', {
+								testId: id
+							}, function(d) {
+								if(d && d.state === 0) {
+									// 先删除列表数据中的
+									for(var i in vm.dataList) {
+										if(vm.dataList[i].testId == id) {
+											vm.dataList.splice(i, 1);
+										}
+									}
+									mui.toast('删除成功');
+								} else {
+									mui.toast('删除失败');
+								}
+							})
+						}
+					})
+				},
+				/**
+				 * 预览图片
+				 */
+				previewImage: function(url) {
+					var arr = [url];
+					plus.nativeUI.previewImage(arr);
+				}
+			}
+		});
+	</script>
+
+</html>

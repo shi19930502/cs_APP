@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+		<link rel="stylesheet" href="../css/index_home.css">
+
+		<style>
+			html,
+			body {
+				background-color: #efeff4;
+			}
+			.title {
+				padding: 20px 15px 10px;
+				color: #6d6d72;
+				font-size: 15px;
+				background-color: #fff;
+			}
+			.editmsg {
+				height: 44px;
+				line-height: 44px;
+				color: #fff;
+			}
+			.mui-pull-right.editmsg {
+				margin-right: 15px;
+			}
+			.mbtenpx-list span.fruit-name {
+				padding-bottom: 0;
+			}
+			.mui-media .mui-row .userImg {
+				width: 50px !important;
+				height: 50px;
+				border-radius: 25px;
+				margin-top: 6px;
+			}
+			.mui-pull-right span.mui-icon {
+				font-size: 14px;
+			}
+			/*未读标记*/
+			
+			.unread-mark {
+				width: 8px;
+				height: 8px;
+				border-radius: 4px;
+				background: rgba(228, 75, 96, 1);
+				position: absolute;
+				left: 12px;
+				top: 50%;
+				margin-top: -4px;
+			}
+			.mui-table-view-cell {
+				margin-bottom: 0;
+				padding-bottom: 0 !important;
+				position: relative;
+				padding-left: 28px;
+			}
+			.mui-table-view-cell:after {
+				background: #fff;
+			}
+			.mui-table-view-cell .mui-row {
+				border-bottom: 1px solid #E6E6E6;
+				padding-bottom: 12px;
+				position: relative;
+			}
+			.mui-table-view-cell .checkbox {
+				position: absolute;
+				top: 50%;
+				margin-top: -10px;
+				left: 15px;
+				/*display: none;*/
+			}
+			.mui-table-view-cell .checkboxed {
+				position: absolute;
+				top: 50%;
+				margin-top: -10px;
+				left: 15px;
+			}
+			.showCheckbox {
+				padding-left: 45px;
+			}
+			/*底部全选按钮*/
+			
+			nav.mui-bar div {
+				text-align: right;
+				padding-right: 15px;
+				line-height: 50px;
+				color: #4C4C4C;
+			}
+			nav.mui-bar div:nth-child(1) {
+				padding-left: 15px;
+				text-align: left;
+				color: #6EC73E;
+			}
+			/*下拉分页*/
+			
+			.mui-bar~.mui-content .mui-fullscreen {
+				top: 44px;
+				height: auto;
+			}
+			.mui-pull-top-tips {
+				position: absolute;
+				top: 0px;
+				left: 50%;
+				margin-left: -25px;
+				width: 40px;
+				height: 40px;
+				border-radius: 100%;
+				z-index: 1;
+			}
+			.mui-bar~.mui-pull-top-tips {
+				top: 24px;
+			}
+			.mui-pull-top-wrapper {
+				width: 42px;
+				height: 42px;
+				display: block;
+				text-align: center;
+				background-color: #efeff4;
+				border: 1px solid #ddd;
+				border-radius: 25px;
+				background-clip: padding-box;
+				box-shadow: 0 4px 10px #bbb;
+				overflow: hidden;
+			}
+			.mui-pull-top-tips.mui-transitioning {
+				-webkit-transition-duration: 200ms;
+				transition-duration: 200ms;
+			}
+			.mui-pull-top-tips .mui-pull-loading {
+				/*-webkit-backface-visibility: hidden;
+				-webkit-transition-duration: 400ms;
+				transition-duration: 400ms;*/
+				margin: 0;
+			}
+			.mui-pull-top-wrapper .mui-icon,
+			.mui-pull-top-wrapper .mui-spinner {
+				margin-top: 7px;
+			}
+			.mui-pull-top-wrapper .mui-icon.mui-reverse {
+				/*-webkit-transform: rotate(180deg) translateZ(0);*/
+			}
+			.mui-pull-bottom-tips {
+				text-align: center;
+				background-color: #efeff4;
+				font-size: 15px;
+				line-height: 40px;
+				color: #777;
+			}
+			.mui-pull-top-canvas {
+				overflow: hidden;
+				background-color: #fafafa;
+				border-radius: 40px;
+				box-shadow: 0 4px 10px #bbb;
+				width: 40px;
+				height: 40px;
+				margin: 0 auto;
+			}
+			.mui-pull-top-canvas canvas {
+				width: 40px;
+			}
+			.mui-slider-indicator.mui-segmented-control {
+				background-color: #efeff4;
+			}
+			.toMsgDetailsBtn {
+				width: 100%;
+				height: 100%;
+				position: absolute;
+				left: 0;
+				border: none;
+				opacity: 0;
+			}
+			.mui-bar .mui-title {
+				right: 130px;
+				left: 130px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<header class="mui-bar mui-bar-nav" id="header">
+					<div id="editBtn" class="mui-pull-left editmsg" @tap="editMsg">{{editBtn}}</div>
+					<div class="mui-pull-left editmsg" @tap="editMsg" v-show="slideNumber == 3">清除回收站</div>
+
+					<h1 id="title" class="mui-title">消息</h1>
+					<div class="mui-pull-right navicon-add" v-show="!isEditMsg" @tap="toAddNewMsg()"></div>
+					<div class="mui-pull-right editmsg" v-show="isEditMsg && slideNumber != 3" @tap="del" style="margin-right: 0;">删除</div>
+					<div class="mui-pull-right editmsg" v-show="isEditMsg && slideNumber == 3" @tap="del(1)" style="margin-right: 0;">清除</div>
+
+					<div class="mui-pull-right editmsg" v-show="isEditMsg" @tap="selectAll">{{qxbtnText}}</div>
+				</header>
+				<div class="mui-content">
+					<div id="slider" class="mui-slider">
+						<div id="sliderSegmentedControl" class="slider-nav mui-slider-indicator mui-segmented-control mui-segmented-control-inverted">
+							<a class="mui-control-item mui-active" href="#item1mobile">未读</a>
+							<a class="mui-control-item" href="#item2mobile">已读</a>
+							<a class="mui-control-item" href="#item3mobile">全部</a>
+							<a class="mui-control-item" href="#item4mobile">回收站</a>
+						</div>
+						<div id="sliderProgressBar" class="mui-slider-progress-bar mui-col-xs-3">
+							<div class="inner-bar"></div>
+						</div>
+						<div class="mui-slider-group">
+							<div id="item1mobile" class="mui-slider-item mui-control-content mui-active" :style="contentMinHeight">
+								<div id="scroll1" class="mui-scroll-wrapper">
+									<div class="mui-scroll" id="orderListView">
+										<ul class="mui-table-view mbtenpx-list">
+											<li class="mui-table-view-cell mui-media" v-for="d in msgDataList">
+												<div class="unread-mark" v-if="d.readR == 0" v-show="!isEditMsg"></div>
+												<button v-show="isEditMsg" :senderId="d.senderId" class="checkbox" @tap="checkLi(event)" style="padding: 0; outline: none;border: none;"></button>
+												<div class="mui-row">
+													<div class="mui-col-sm-8 mui-col-xs-8">
+														<img v-if="d.headPortrait && d.nickName" class="mui-media-object mui-pull-left userImg" :src="IMGURL + d.headPortrait +'&image/jpeg'">
+														<img v-else class="mui-media-object mui-pull-left userImg" src="../images/often.png" />
+														<div class="mui-media-body">
+															<span class="fruit-name" style="font-size: 16px;">{{d.userName || d.nickName}}</span>
+															<p class='mui-ellipsis'>
+																<h5 style="color: #4C4C4C;">{{d.subject}}</h5></p>
+															<p class='mui-ellipsis'>{{d.body}}</p>
+														</div>
+													</div>
+													<div class="mui-col-sm-4 mui-col-xs-4 right">
+														<div class="mui-pull-right">
+															<p class='mui-ellipsis'>{{d.createTime}}<span class="mui-icon mui-icon-arrowright"></span></p>
+														</div>
+													</div>
+													<!--其他元素无法绑定点击事件-->
+													<button class="toMsgDetailsBtn" @tap="toMsgDetails(d)"></button>
+												</div>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div id="item2mobile" class="mui-slider-item mui-control-content" :style="contentMinHeight">
+								<div id="scroll2" class="mui-scroll-wrapper">
+									<div class="mui-scroll">
+										<div class="mui-loading" v-show="!showItem2List">
+											<div class="mui-spinner"></div>
+										</div>
+										<ul class="mui-table-view mbtenpx-list" v-show="showItem2List">
+											<li class="mui-table-view-cell mui-media" v-for="d in msgDataList">
+												<div class="unread-mark" v-if="d.readR == 0"></div>
+												<button v-show="isEditMsg" :senderId="d.senderId" class="checkbox" @tap="checkLi(event)" style="padding: 0; outline: none;border: none;"></button>
+												<div class="mui-row">
+													<div class="mui-col-sm-8 mui-col-xs-8">
+														<img v-if="d.headPortrait && d.nickName" class="mui-media-object mui-pull-left userImg" :src="IMGURL + d.headPortrait +'&image/jpeg'">
+														<img v-else class="mui-media-object mui-pull-left userImg" src="../images/often.png" />
+														<div class="mui-media-body">
+															<span class="fruit-name" style="font-size: 16px;">{{d.userName || d.nickName}}</span>
+															<p class='mui-ellipsis'>
+																<h5 style="color: #4C4C4C;">{{d.subject}}</h5></p>
+															<p class='mui-ellipsis'>{{d.body}}</p>
+														</div>
+													</div>
+													<div class="mui-col-sm-4 mui-col-xs-4 right">
+														<div class="mui-pull-right">
+															<p class='mui-ellipsis'>{{d.createTime}}<span class="mui-icon mui-icon-arrowright"></span></p>
+														</div>
+													</div>
+													<button class="toMsgDetailsBtn" @tap="toMsgDetails(d)"></button>
+												</div>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div id="item3mobile" class="mui-slider-item mui-control-content" :style="contentMinHeight">
+								<div id="scroll3" class="mui-scroll-wrapper">
+									<div class="mui-scroll">
+										<div class="mui-loading" v-show="!showItem3List">
+											<div class="mui-spinner"></div>
+										</div>
+										<ul class="mui-table-view mbtenpx-list" v-show="showItem3List">
+											<li class="mui-table-view-cell mui-media" v-for="d in msgDataList">
+												<div class="unread-mark" v-if="d.readR == 0" v-show="!isEditMsg"></div>
+												<button v-show="isEditMsg" :senderId="d.senderId" class="checkbox" @tap="checkLi(event)" style="padding: 0; outline: none;border: none;"></button>
+												<div class="mui-row">
+													<div class="mui-col-sm-8 mui-col-xs-8">
+														<img v-if="d.headPortrait && d.nickName" class="mui-media-object mui-pull-left userImg" :src="IMGURL + d.headPortrait +'&image/jpeg'">
+														<img v-else class="mui-media-object mui-pull-left userImg" src="../images/often.png" />
+														<div class="mui-media-body">
+															<span class="fruit-name" style="font-size: 16px;">{{d.userName || d.nickName}}</span>
+															<p class='mui-ellipsis'>
+																<h5 style="color: #4C4C4C;">{{d.subject}}</h5></p>
+															<p class='mui-ellipsis'>{{d.body}}</p>
+														</div>
+													</div>
+													<div class="mui-col-sm-4 mui-col-xs-4 right">
+														<div class="mui-pull-right">
+															<p class='mui-ellipsis'>{{d.createTime}}<span class="mui-icon mui-icon-arrowright"></span></p>
+														</div>
+													</div>
+													<button class="toMsgDetailsBtn" @tap="toMsgDetails(d)"></button>
+												</div>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div id="item4mobile" class="mui-slider-item mui-control-content" :style="contentMinHeight">
+								<div id="scroll3" class="mui-scroll-wrapper">
+									<div class="mui-scroll">
+										<div class="mui-loading" v-show="!showItem4List">
+											<div class="mui-spinner"></div>
+										</div>
+										<ul class="mui-table-view mbtenpx-list" v-show="showItem4List">
+											<li class="mui-table-view-cell mui-media" v-for="d in msgDataList">
+												<div class="unread-mark" v-if="d.readR == 0" v-show="!isEditMsg"></div>
+												<button v-show="isEditMsg" :senderId="d.senderId" :mailboxId="d.mailboxId" class="checkbox" @tap="checkLi(event)" style="padding: 0; outline: none;border: none;"></button>
+												<div class="mui-row">
+													<div class="mui-col-sm-8 mui-col-xs-8">
+														<img v-if="d.headPortrait && d.nickName" class="mui-media-object mui-pull-left userImg" :src="IMGURL + d.headPortrait +'&image/jpeg'">
+														<img v-else class="mui-media-object mui-pull-left userImg" src="../images/often.png" />
+
+														<div class="mui-media-body">
+															<span class="fruit-name" style="font-size: 16px;">{{d.userName || d.nickName}}</span>
+															<p class='mui-ellipsis'>
+																<h5 style="color: #4C4C4C;">{{d.subject}}</h5></p>
+															<p class='mui-ellipsis'>{{d.body}}</p>
+														</div>
+													</div>
+													<div class="mui-col-sm-4 mui-col-xs-4 right">
+														<div class="mui-pull-right">
+															<p class='mui-ellipsis'>{{d.createTime}}<span class="mui-icon mui-icon-arrowright"></span></p>
+														</div>
+													</div>
+													<button class="toMsgDetailsBtn" @tap="toMsgDetails(d)"></button>
+												</div>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>
+
+		<script src="../libs/js/mui.min.js"></script>
+		<script src="../libs/js/vue.min.js"></script>
+		<script src="../libs/js/mui.pullToRefresh.js"></script>
+		<script src="../libs/js/mui.pullToRefresh.material.js"></script>
+		<script src="../js/comm.js"></script>
+
+		<script>
+			var vm = new Vue({
+				el: '#app',
+				template: indexTpl,
+				data: function() {
+					return {
+						loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+						count: 0,
+						// 动态获取content的高度
+						contentMinHeight: 'min-height:' + (window.screen.height - 159) + 'px',
+						// 是否编辑消息
+						isEditMsg: false,
+						// 编辑按钮
+						editBtn: '编辑',
+						dataList: [],
+						state: '未读',
+						msgDataList: [],
+						pageSize: 10,
+						pageNum: 1,
+						// 消息状态
+						readR: 0,
+						// 总页数
+						pageTatol: 0,
+						showItem2List: false,
+						showItem3List: false,
+						showItem4List: false,
+						slideNumber: 0,
+						qxbtnText: '全选'
+					}
+				},
+				watch: {
+					isEditMsg: function(val) {
+						if(val) {
+							var arr = document.getElementsByClassName('mui-table-view-cell')
+							for(var i = 0; i < arr.length; i++) {
+								arr[i].classList.add('showCheckbox')
+							}
+						} else {
+							var arr = document.getElementsByClassName('mui-table-view-cell')
+							for(var i = 0; i < arr.length; i++) {
+								arr[i].classList.remove('showCheckbox')
+							}
+						}
+					},
+					slideNumber: function(val) {
+						if(val == 3) {
+							document.getElementById('editBtn').style.display = 'none'
+						} else {
+							document.getElementById('editBtn').style.display = 'block'
+						}
+					}
+				},
+				mounted: function() {
+					var vm = this;
+					// 监听refresh事件刷新页面
+					window.addEventListener('refresh1', function(e) {
+						if(this.slideNumber == 3) {
+							this.queryByReclaim(false)
+						} else {
+							this.getMailboxSenderList(false)
+						}
+					}.bind(this))
+
+					//阻尼系数
+					var deceleration = mui.os.ios ? 0.003 : 0.0009;
+					mui('.mui-scroll-wrapper').scroll({
+						bounce: false,
+						indicators: true, //是否显示滚动条
+						deceleration: deceleration
+					});
+					if(this.slideNumber == 3) {
+						this.queryByReclaim(false)
+					} else {
+						this.getMailboxSenderList(false)
+					}
+
+					mui.ready(function() {
+						//循环初始化所有下拉刷新，上拉加载。
+						mui.each(document.querySelectorAll('.mui-slider-group .mui-scroll'), function(index, pullRefreshEl) {
+							mui(pullRefreshEl).pullToRefresh({
+								down: {
+									callback: function() {
+										var self = this;
+										// 延迟一秒关闭刷新控件
+										if(vm.slideNumber == 3) {
+											setTimeout(function() {
+												vm.pageNum = 1;
+												vm.queryByReclaim(false, function() {
+													self.endPullDownToRefresh();
+												});
+											}, 1000);
+										} else {
+											setTimeout(function() {
+												vm.pageNum = 1;
+												vm.getMailboxSenderList(false, function() {
+													self.endPullDownToRefresh();
+												});
+											}, 1000);
+										}
+									}
+								},
+								up: {
+									callback: function() {
+										var self = this;
+										++vm.pageNum;
+										if(vm.slideNumber == 3) {
+											vm.queryByReclaim(true, function() {
+												self.endPullUpToRefresh(vm.pageNum > vm.pageTatol);
+											});
+										} else {
+											vm.getMailboxSenderList(true, function() {
+												self.endPullUpToRefresh(vm.pageNum > vm.pageTatol);
+											});
+										}
+									}
+								}
+							});
+						});
+					});
+
+					document.getElementById('slider').addEventListener('slide', function(e) {
+						vm.pageNum = 1;
+						vm.isEditMsg = false;
+						vm.editBtn = '编辑';
+						vm.qxbtnText = '全选'
+						vm.slideNumber = e.detail.slideNumber;
+						// 删除选择样式
+						var arr = document.getElementsByClassName('checkbox')
+						for(var i = 0; i < arr.length; i++) {
+							arr[i].classList.remove('checkboxed')
+						}
+						// 判断是滑动到哪一块
+						if(e.detail.slideNumber === 1) { //已读
+							vm.showItem2List = true;
+							vm.readR = 1;
+							vm.getMailboxSenderList(false);
+						} else if(e.detail.slideNumber === 2) { //全部
+							vm.showItem3List = true;
+							vm.readR = '';
+							vm.getMailboxSenderList(false);
+						} else if(e.detail.slideNumber === 3) { //回收站
+							vm.showItem4List = true;
+							vm.queryByReclaim(false);
+						} else { //未读
+							vm.readR = 0;
+							vm.getMailboxSenderList(false);
+						}
+					});
+				},
+				methods: {
+					/**
+					 * 获取消息列表
+					 * @param {Boolean} isPullRefresh 是否下拉刷新调用
+					 * @param {Function} cb 关闭下拉刷新回调
+					 */
+					getMailboxSenderList: function(isPullRefresh, cb) {
+						var vm = this;
+						getDataList(APIURL + 'business/mailboxSender/list', {
+							enterpriseId: vm.loginUserInfo.enterpriseId,
+							addresseeUserId: vm.loginUserInfo.userId,
+							readR: vm.readR,
+							pageSize: vm.pageSize,
+							pageNum: vm.pageNum
+						}, function(d) {
+							if(d.state === 0) {
+								if(d.aaData && d.aaData.length > 0) {
+									for(var i in d.aaData) {
+										//处理时间格式
+										if(d.aaData[i].createTime) {
+											d.aaData[i].createTime = d.aaData[i].createTime.split(' ')[0];
+										}
+									}
+									// 判断是否下拉刷新分页
+									if(isPullRefresh) {
+										vm.msgDataList = vm.msgDataList.concat(d.aaData);
+									} else {
+										vm.msgDataList = d.aaData;
+										vm.pageTatol = Math.ceil(d.dataCount / vm.pageSize);
+									}
+								} else {
+									if(!isPullRefresh) {
+										vm.msgDataList = []
+									}
+								}
+							}
+							// 关闭刷新控件
+							cb && cb();
+						})
+					},
+					/**
+					 * 获取回收站消息
+					 */
+					queryByReclaim: function(isPullRefresh, cb) {
+						getDataList(APIURL + 'business/mailboxSender/queryByReclaim', {
+							enterpriseId: vm.loginUserInfo.enterpriseId,
+							userId: vm.loginUserInfo.userId,
+							pageSize: vm.pageSize,
+							pageNum: vm.pageNum
+						}, function(d) {
+							if(d.state === 0) {
+								if(d.aaData && d.aaData.length > 0) {
+									for(var i in d.aaData) {
+										console.log(JSON.stringify(d.aaData[i]))
+										
+										// 处理图片路径
+										if(d.aaData[i].headPortrait) {
+											d.aaData[i].imgsrc = IMGURL + d.aaData[i].headPortrait + '&image/jpeg';
+										}
+										//处理时间格式
+										if(d.aaData[i].createTime) {
+											d.aaData[i].createTime = d.aaData[i].createTime.split(' ')[0];
+										}
+									}
+									// 判断是否下拉刷新分页
+									if(isPullRefresh) {
+										vm.msgDataList = vm.msgDataList.concat(d.aaData);
+									} else {
+										vm.msgDataList = d.aaData;
+										vm.pageTatol = Math.ceil(d.dataCount / vm.pageSize);
+									}
+								} else {
+									if(!isPullRefresh) {
+										vm.msgDataList = []
+									}
+								}
+							}
+							// 关闭刷新控件
+							cb && cb();
+						})
+					},
+
+					editMsg: function() {
+						if(this.editBtn == '编辑') {
+							this.editBtn = '取消';
+							this.isEditMsg = true;
+						} else {
+							this.editBtn = '编辑';
+							this.isEditMsg = false;
+						}
+					},
+					toAddNewMsg: function() {
+						mui.openWindow({
+							url: 'index_message_new.html',
+							id: 'index_message_new'
+						})
+					},
+					/**
+					 * 全选
+					 */
+					selectAll: function() {
+						var pid = 'item' + (this.slideNumber + 1) + 'mobile';
+						var arr = document.getElementById(pid).getElementsByClassName('checkbox');
+						
+						if(vm.qxbtnText == '全选') {
+							vm.qxbtnText = '取消全选';
+							for(var i = 0; i < arr.length; i++) {
+								arr[i].classList.add('checkboxed')
+							}
+						} else {
+							vm.qxbtnText = '全选';
+							for(var i = 0; i < arr.length; i++) {
+								arr[i].classList.remove('checkboxed');
+							}
+						}
+					},
+					/**
+					 * 删除消息
+					 */
+					del: function(type) {
+						var vm = this;
+						var pid = 'item' + (this.slideNumber + 1) + 'mobile';
+						var arr = document.getElementById(pid).getElementsByClassName('checkboxed');
+						
+						var delArr = [];
+						var mailboxIds = [];
+						var param = {};
+						var URL = APIURL + 'business/mailboxSender/updateSeder';
+
+						// 封装删除参数
+						for(var i = 0; i < arr.length; i++) {
+							delArr.push(arr[i].getAttribute('senderId')) 
+							mailboxIds.push(arr[i].getAttribute('mailboxId'))
+						}
+						param = {
+							enterpriseId: vm.loginUserInfo.enterpriseId,
+							senderId: JSON.stringify(delArr),
+						}
+						
+						// 清除回收站消息
+						if(type == 1) {
+							URL = APIURL + 'business/mailboxSender/updateSeders'
+							param = {
+								enterpriseId: vm.loginUserInfo.enterpriseId,
+								senderId: JSON.stringify(delArr),
+								mailboxId: JSON.stringify(mailboxIds)
+							}
+						}
+
+						// 删除接口
+						var msg = '确认删除?'; 
+						var title = '提示';
+						var btnValue = ['确认', '取消'];
+						if(delArr.length != 0) {
+							mui.confirm(msg, title, btnValue, function(e) {
+								if(e.index == 0) {
+									getDataList(URL, param, function(d) {
+										if(d && d.state === 0) {
+											vm.editBtn = '编辑';
+											vm.isEditMsg = false;
+											// 删除选择样式
+											var arr = document.getElementsByClassName('checkbox')
+											for(var i = 0; i < arr.length; i++) {
+												arr[i].classList.remove('checkboxed')
+											}
+											// 先删除列表数据中的
+											for(var i in vm.msgDataList) {
+												for(var j in delArr) {
+													if(vm.msgDataList[i].senderId == delArr[j]) {
+														vm.msgDataList.splice(i, 1);
+													}
+												}
+											}
+											mui.toast('删除成功');
+											vm.qxbtnText = '全选'
+										} else {
+											mui.toast('删除失败');
+										}
+									})
+								}
+							})
+						} else {
+							mui.alert('请至少选择一条消息')
+						}
+					},
+					// 查看消息详情
+					toMsgDetails: function(d) {
+						mui.openWindow({
+							url: 'index_message_details.html',
+							id: 'index_message_details',
+							extras: {
+								msg: {
+									mailboxId: d.mailboxId,
+									cityId: d.cityId
+								},
+								readR: d.readR,
+								senderId: d.senderId
+							}
+						})
+					},
+					// 多选事件
+					checkLi: function(e) {
+						var ths = e.target
+						if(ths.className == 'checkbox') {
+							ths.classList.add('checkboxed')
+						} else {
+							ths.classList.remove('checkboxed')
+						}
+					}
+				}
+			});
+		</script>
+		<script src="../js/immersed.js"></script>
+	</body>
+
+</html>

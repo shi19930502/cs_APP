@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta name="HandheldFriendly" content="true" />
+		<meta name="MobileOptimized" content="320" />
+		<title>Hello H5+</title>
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+
+	</head>
+
+	<body style="margin:0;padding:0;width:100%;height:100%;text-align:center;">
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<img :src="src" @tap="closeImg" style="width: 100%;"/>
+		</script>
+
+		<script src="../libs/js/mui.min.js"></script>
+		<script src="../libs/js/vue.min.js"></script>
+		<script type="text/javascript">
+			var vm = new Vue({
+				el: '#app',
+				template: indexTpl,
+				data: function() {
+					return {
+						src: localStorage.getItem('previewImage')
+					}
+				},
+				mounted: function() {
+
+				},
+				methods: {
+					closeImg: function() {
+						localStorage.removeItem('previewImage');
+						mui.back();
+					}
+				}
+
+			})
+		</script>
+	</body>
+
+</html>

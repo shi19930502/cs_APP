@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>地图</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+		<style type="text/css">
+			#map {
+				width: 100%;
+				position: fixed;
+				top: 0px;
+				bottom: 0px;
+				line-height: 200px;
+				text-align: center;
+				background: #FFFFFF;
+			}
+			.ipos {
+				background: no-repeat center center url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAsCAYAAAAn4+taAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABZ0RVh0Q3JlYXRpb24gVGltZQAwNC8wMS8xNExYUU4AAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzbovLKMAAACTklEQVRoge2YO2gUURSGv7PjEkULO4UoFooIFgtzprAPWMiWKewSTadgYWEhBjHCloGUQtYHaGEjGAQtUmgnZO9YpsqC2NgYIwjRInMscoPrYkzhGTIs8zdnzoP578ewM/eumBmjoMZ+L8BLNUjVVINUTTVI1VSDVE0jA3KgjJuGEE6LyI2iKC6JyBkzWxORF8ADVV0rw1O891ohhCngPnDyL+1PZjabZdkTV1OcQUIIV4CHMf0JvAK+A0eANjAWe1dV9ZGbMY6/kTzPzwHzMV0VkZaqTgLTqjopIi1gNfbnQwhnvbzBEcTMbgFHgXURaRdFsRFCWAa+hhCWi6LYEJE2sB7nbnp5g+9b62KMIU3Tvoh0gQm2Fz0hIt00TftAADCztqO3K8h4jJsAZnZ+sDmQ/wAQkXEc5QnyJcZjACLybLApIk/j5YmheRd5gryLMev1elOqesfMrpvZczO7pqqzvV5vGmgNzbvIDUREXsbLRES6IYTbzWZzMcuyy0mSPA4h3BWRxR3PgXkff6/vSJ7nx83sPXBqoLwJFEACHByofxSRC2mafnYxx/GJxEW9GSofAg7zJwTAa08I8N80doG9HrHx++vvJlcQVV0xs6V/zZjZkqquePpCOdv4OWBrl96WiNwrwdMfJMuyHFjYpb2gqh+8PaG8g9Uc0B+q9WO9FJUCoqrfgBm2X73EOBPrpai0o66qvgU6Me3EvDSVctTdUZIknaIoxhqNRmfv6f+T+1F3vzQy/6LUIFVTDVI11SBVUw1SNdUgVdPIgPwCtt+2JPQRVicAAAAASUVORK5CYII=);
+				background-size: 50px 44px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<div class="mui-content">
+					<div id="map">地图加载中...</div>
+				</div>
+			</div>
+		</script>
+
+	</body>
+	<script src="../libs/js/mui.min.js"></script>
+	<script src="../libs/js/vue.min.js"></script>
+	<script src="../js/comm.js"></script>
+
+	<script>
+		var vm = new Vue({
+			el: '#app',
+			template: indexTpl,
+			data: function() {
+				return {
+					loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+					ws: null,
+					wo: null,
+					map: null,
+				}
+			},
+			mounted: function() {
+				var vm = this;
+				mui.plusReady(function() {
+					// 获取窗口对象
+					var self = plus.webview.currentWebview();
+					var titleView = self.getNavigationbar();
+
+					vm.ws = self;
+					vm.wo = vm.ws.opener();
+
+					if(!titleView) {
+						titleView = plus.webview.getLaunchWebview().getNavigationbar();
+					}
+					//开启回弹
+					self.setStyle({
+						bounce: "vertical",
+						bounceBackground: "#ffffff",
+					});
+					// 绘制添加按钮
+					//					titleView.drawText('搜索', {
+					//						top: "10px",
+					//						right: "10px",
+					//						height: "24px"
+					//					}, {
+					//						align: 'right',
+					//						color: '#fff',
+					//						size: '17px'
+					//					});
+					// 是否拦截View控件的触屏事件
+					//					titleView.interceptTouchEvent(true);
+					//					// 保存
+					//					titleView.addEventListener("click", function(e) {
+					//						var x = e.clientX;
+					//						if(x > 300) {
+					//							
+					//							vm.search();
+					//						}
+					//					})
+					/**
+					 * 获取坐标点
+					 */
+					if(self.coordinate) {
+						vm.point = self.coordinate;
+						setTimeout(function() {
+							// 获取基地位置
+							var longitude = self.coordinate.split(',')[0];
+							var latitude = self.coordinate.split(',')[1];
+							var center = new plus.maps.Point(longitude, latitude);
+							// 设置地图中心点
+							vm.map = new plus.maps.Map("map");
+							vm.map.setCenter(center);
+							// 覆盖物
+							var marker = new plus.maps.Marker(center);
+							var bubble = new plus.maps.Bubble(self.baseObj.remark);
+
+							marker.setIcon("../images/home_icon_jidi_1.png");
+							marker.setLabel(self.baseObj.name);
+							marker.setBubble(bubble);
+							vm.map.addOverlay(marker);
+						}, 300);
+						// 显示页面并关闭等待框
+						vm.ws.show("pop-in");
+					}
+				})
+			},
+			methods: {
+				// 重置地图
+				resetMap: function() {
+					map.reset();
+				},
+				// 检索地图
+				search: function() {
+					// 将检索到的第一条信息作为标点添加到地图中
+					// 检索位置象
+					var searchObj = new plus.maps.Search(map);
+					searchObj.onPoiSearchComplete = function(state, result) {
+						if(state == 0) {
+							if(result.currentNumber <= 0) {
+								alert("没有检索到结果");
+							}
+							console.log(JSON.stringify(result.poiList))
+							//							for(var i in result.poiList){
+							//								console.log(JSON.stringify(result.poiList[i]))
+							//							}
+							for(var i = 0; i < result.currentNumber; i++) {
+								var pos = result.getPosition(i);
+								var marker = new plus.maps.Marker(pos.point);
+								marker.setLabel(pos.name);
+								vm.map.addOverlay(marker);
+							}
+						} else {
+							alert("检索失败");
+						}
+					}
+					var pt = new plus.maps.Point(104.076658, 30.555867);
+					searchObj.poiSearchNearBy("软件园", pt, 1000);
+					//			alert(JSON.stringify(searchObj))
+				}
+			}
+		});
+	</script>
+
+</html>

@@ -1,0 +1,655 @@
+{
+  "index.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "js/update.js",
+      "libs/css/mui.min.css",
+      "libs/js/update.js",
+      "libs/js/mui.min.js",
+      "libs/fonts/mui.ttf",
+      "js/index.js",
+      "js/comm.js",
+      "libs/js/laytpl.js",
+      "test/tab-webview-subpage-about.html",
+      "pages/index_home.html",
+      "images/home_tabicon_mine.png",
+      "css/index.css",
+      "images/home_tabicon_home_a.png",
+      "images/home_tabicon_dingd.png",
+      "images/home_tabicon_message.png",
+      "images/home_icon_add.png",
+      "css/comm.css",
+      "libs/js/vue.min.js",
+      "images/home_tabicon_home.png",
+      "images/home_tabicon_mine_a.png",
+      "pages/index_userInfo.html"
+    ],
+    "refer": [
+      "index-menu.html",
+      "examples/guide.html",
+      "examples/buttons.html",
+      "examples/imageviewer.html",
+      "examples/info.html",
+      "examples/accordion.html",
+      "examples/ajax.html",
+      "examples/best-practices/list-to-detail/listview.html",
+      "examples/actionsheet.html",
+      "examples/setting.html",
+      "examples/lazyload-image.html",
+      "examples/clouddb_wilddog.html",
+      "examples/im-chat.html",
+      "examples/dialog.html",
+      "examples/badges.html",
+      "login.html",
+      "pages/guide.html",
+      "pages/search.html",
+      "pages/base_edit.html",
+      "test/tab-webview-subpage-about.html",
+      "test/tab-webview-subpage-contact.html",
+      "test/tab-webview-subpage-setting.html",
+      "test/tab-webview-subpage-chat.html",
+      "pages/index-home.html",
+      "pages/index_home.html",
+      "pages/tab-webview-subpage-setting.html",
+      "pages/tab-webview-subpage-contact.html",
+      "pages/tab-webview-subpage-chat.html",
+      "pages/index_order.html",
+      "pages/index_setting.html",
+      "pages/index_message.html",
+      "pages/index_userInfo.html",
+      "pages/index_modal_nav.html"
+    ]
+  },
+  "examples/buttons.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css"
+    ],
+    "refer": []
+  },
+  "examples/imageviewer.html": {
+    "resources": [
+      "js/mui.zoom.js",
+      "images/muwu.jpg",
+      "images/yuantiao.jpg",
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "js/mui.previewimage.js",
+      "images/shuijiao.jpg"
+    ],
+    "refer": []
+  },
+  "examples/info.html": {
+    "resources": [
+      "images/qrcode.png",
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "libs/fonts/mui.ttf",
+      "libs/css/mui.min.css",
+      "libs/js/mui.min.js"
+    ],
+    "refer": []
+  },
+  "examples/accordion.html": {
+    "resources": [
+      "images/cbd.jpg",
+      "images/muwu.jpg",
+      "images/yuantiao.jpg",
+      "images/shuijiao.jpg",
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "libs/css/mui.min.css",
+      "libs/js/mui.min.js",
+      "libs/fonts/mui.ttf"
+    ],
+    "refer": []
+  },
+  "examples/ajax.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css"
+    ],
+    "refer": []
+  },
+  "examples/best-practices/list-to-detail/detail.html": {
+    "resources": [
+      "examples/best-practices/list-to-detail/list-to-detail.css"
+    ],
+    "refer": []
+  },
+  "examples/best-practices/list-to-detail/listview.html": {
+    "resources": [
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "examples/best-practices/list-to-detail/vue.min.js"
+    ],
+    "refer": [
+      "examples/best-practices/list-to-detail/detail.html"
+    ]
+  },
+  "examples/setting.html": {
+    "resources": [
+      "css/feedback.css",
+      "images/logo.png",
+      "js/feedback.js",
+      "js/mui.view.js"
+    ],
+    "refer": []
+  },
+  "examples/lazyload-image.html": {
+    "resources": [
+      "js/mui.min.js",
+      "css/app.css",
+      "images/60x60.gif",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "js/mui.lazyload.js",
+      "js/mui.lazyload.img.js",
+      "libs/css/mui.min.css",
+      "libs/css/app.css",
+      "libs/fonts/mui.ttf",
+      "libs/js/mui.lazyload.img.js",
+      "libs/js/mui.lazyload.js",
+      "libs/js/mui.min.js"
+    ],
+    "refer": []
+  },
+  "examples/clouddb_wilddog.html": {
+    "resources": [
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "fonts/mui.ttf"
+    ],
+    "refer": []
+  },
+  "examples/im-chat.html": {
+    "resources": [
+      "js/mui.imageViewer.js",
+      "images/logo.png",
+      "js/mui.min.js",
+      "css/app.css",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "css/mui.imageviewer.css",
+      "js/arttmpl.js"
+    ],
+    "refer": []
+  },
+  "index-menu.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "libs/fonts/mui.ttf",
+      "libs/css/mui.min.css",
+      "libs/js/mui.min.js",
+      "examples/pullrefresh_main.html"
+    ],
+    "refer": [
+      "examples/pullrefresh_main.html"
+    ]
+  },
+  "login.html": {
+    "resources": [
+      "css/login.css",
+      "libs/css/mui.min.css",
+      "js/comm.js",
+      "js/login.js",
+      "libs/js/mui.min.js",
+      "libs/fonts/mui.ttf",
+      "images/login_img_banner.png",
+      "images/login_icon_user.png",
+      "images/login_icon_password.png",
+      "css/comm.css",
+      "libs/js/vue.min.js"
+    ],
+    "refer": [
+      "index.html",
+      "pages/guide.html"
+    ]
+  },
+  "pages/guide.html": {
+    "resources": [
+      "css/guide.css",
+      "js/guide.js"
+    ],
+    "refer": []
+  },
+  "pages/search.html": {
+    "refer": [
+      "pages/search_result.html"
+    ],
+    "resources": []
+  },
+  "pages/index_home.html": {
+    "refer": [
+      "pages/base_change.html",
+      "pages/base_main.html",
+      "pages/recovery_list.html",
+      "pages/testing_list.html",
+      "pages/machining_list.html",
+      "pages/base_list.html",
+      "pages/machining_main.html",
+      "pages/barcode_scan.html",
+      "pages/search.html",
+      "pages/base_farming.html",
+      "pages/webview_mask_side.html",
+      "pages/test.html",
+      "pages/index_menu.html"
+    ],
+    "resources": [
+      "libs/js/update.js",
+      "images/home_icon_jiance.png",
+      "images/home_icon_caishou.png",
+      "images/home_icon_jidi.png",
+      "images/home_icon_jiagong.png",
+      "images/home_navicon_saoma.png",
+      "images/home_icon_zhuanhuan1.png",
+      "libs/js/mui.pullToRefresh.js",
+      "libs/js/mui.pullToRefresh.material.js",
+      "js/immersed.js",
+      "css/index_home.css",
+      "images/often.png"
+    ]
+  },
+  "pages/base_main.html": {
+    "resources": [
+      "pages/base_main_list.html",
+      "pages/base_main_monitor.html",
+      "pages/base_list.html"
+    ],
+    "refer": [
+      "pages/base_main_list.html",
+      "pages/base_main_monitor.html",
+      "pages/base_main_farming.html",
+      "pages/base_main_list_add.html",
+      "pages/base_farming.html",
+      "pages/base_monitor.html",
+      "pages/base_list.html"
+    ]
+  },
+  "pages/base_main_list.html": {
+    "resources": [
+      "pages/base_main_monitor.html"
+    ],
+    "refer": [
+      "pages/base_main_monitor.html",
+      "pages/base_main_farming.html",
+      "pages/base_details.html",
+      "pages/base_main_list_add.html"
+    ]
+  },
+  "pages/base_main_list_add.html": {
+    "refer": [
+      "pages/maps_map.html"
+    ],
+    "resources": []
+  },
+  "pages/recovery_list.html": {
+    "refer": [
+      "pages/recovery_wait_list.html",
+      "pages/recovery_add.html"
+    ],
+    "resources": [
+      "libs/js/mui.picker.min.js",
+      "libs/css/mui.picker.min.css",
+      "images/jidi_icon_down.png",
+      "css/recovery_list.css",
+      "libs/fonts/mui.ttf",
+      "libs/css/mui.min.css",
+      "js/comm.js",
+      "libs/js/mui.min.js",
+      "css/comm.css",
+      "libs/js/vue.min.js"
+    ]
+  },
+  "test/tab-webview-subpage-setting.html": {
+    "refer": [
+      "login.html"
+    ],
+    "resources": []
+  },
+  "pages/tab-webview-subpage-setting.html": {
+    "refer": [
+      "login.html"
+    ],
+    "resources": []
+  },
+  "pages/index_setting.html": {
+    "refer": [
+      "login.html",
+      "pages/index_setting_edit.html"
+    ],
+    "resources": []
+  },
+  "pages/index_order.html": {
+    "resources": [
+      "pages/tab-top-subpage-1.html",
+      "libs/js/mui.pullToRefresh.js",
+      "libs/js/mui.pullToRefresh.material.js",
+      "js/immersed.js",
+      "css/index_home.css",
+      "images/often.png",
+      "libs/css/mui.min.css",
+      "libs/js/mui.min.js",
+      "css/comm.css"
+    ],
+    "refer": [
+      "pages/tab-top-subpage-1.html",
+      "pages/tab-top-subpage-2.html",
+      "pages/tab-top-subpage-3.html",
+      "pages/index_order_all.html",
+      "pages/index_order_details.html"
+    ]
+  },
+  "pages/index_userInfo.html": {
+    "refer": [
+      "pages/index_userInfo_setting.html",
+      "pages/index_userInfo_edit.html"
+    ],
+    "resources": [
+      "images/mine_icon_edit.png",
+      "images/mine_icon_setting.png",
+      "js/immersed.js",
+      "libs/css/mui.min.css",
+      "js/comm.js",
+      "libs/js/mui.min.js",
+      "css/comm.css",
+      "libs/js/vue.min.js"
+    ]
+  },
+  "pages/index_userInfo_setting.html": {
+    "refer": [
+      "pages/index_userInfo_updatepsw.html",
+      "login.html"
+    ],
+    "resources": [
+      "libs/fonts/mui.ttf",
+      "libs/css/mui.min.css",
+      "libs/js/mui.min.js",
+      "images/qhjd_icon_back.png",
+      "css/comm.css",
+      "js/immersed.js",
+      "libs/js/vue.min.js"
+    ]
+  },
+  "pages/base_main_monitor.html": {
+    "refer": [
+      "pages/base_main_list_add.html"
+    ],
+    "resources": []
+  },
+  "pages/base_main_farming.html": {
+    "refer": [
+      "pages/base_main_list_add.html"
+    ],
+    "resources": []
+  },
+  "pages/index_message.html": {
+    "refer": [
+      "pages/index_message_new.html",
+      "pages/index_message_details.html"
+    ],
+    "resources": [
+      "images/often.png",
+      "images/qhjd_checkbox.png",
+      "images/qhjd_icon_add.png",
+      "libs/js/mui.pullToRefresh.js",
+      "libs/js/mui.pullToRefresh.material.js",
+      "js/immersed.js",
+      "css/index_home.css",
+      "libs/fonts/mui.ttf"
+    ]
+  },
+  "pages/base_list.html": {
+    "refer": [
+      "pages/base_list_add.html",
+      "pages/base_details.html"
+    ],
+    "resources": [
+      "libs/fonts/mui.ttf",
+      "images/often.png",
+      "libs/css/mui.min.css",
+      "js/comm.js",
+      "libs/js/mui.min.js",
+      "css/comm.css",
+      "libs/js/vue.min.js"
+    ]
+  },
+  "pages/base_list_add.html": {
+    "refer": [
+      "pages/maps_map.html"
+    ],
+    "resources": []
+  },
+  "pages/base_farming.html": {
+    "refer": [
+      "pages/base_farming_add.html",
+      "pages/webview_float.html"
+    ],
+    "resources": [
+      "libs/js/mui.poppicker.js",
+      "libs/js/mui.picker.js",
+      "libs/fonts/mui.ttf",
+      "libs/css/mui.picker.min.css",
+      "images/jidi_icon_down.png",
+      "images/often.png",
+      "libs/css/mui.min.css",
+      "js/comm.js",
+      "libs/js/mui.min.js",
+      "css/comm.css",
+      "libs/js/vue.min.js"
+    ]
+  },
+  "pages/base_details.html": {
+    "refer": [
+      "pages/base_list_add.html",
+      "pages/maps_map.html"
+    ],
+    "resources": []
+  },
+  "pages/base_farming_add.html": {
+    "refer": [
+      "pages/base_farming_materiel.html",
+      "pages/index_message_new_addUser.html"
+    ],
+    "resources": []
+  },
+  "pages/base_monitor.html": {
+    "resources": [
+      "libs/fonts/mui.ttf"
+    ],
+    "refer": [
+      "pages/base_monitor_add.html"
+    ]
+  },
+  "pages/recovery_wait_list.html": {
+    "refer": [
+      "pages/recovery_add.html",
+      "pages/recovery_custom_crop.html"
+    ],
+    "resources": [
+      "images/qhjd_icon_back.png",
+      "images/nodata.png",
+      "libs/js/mui.picker.min.js",
+      "libs/css/mui.min.css",
+      "js/comm.js",
+      "libs/css/mui.picker.min.css",
+      "images/qhjd_checkbox.png",
+      "libs/js/mui.min.js",
+      "css/comm.css",
+      "js/immersed.js",
+      "libs/js/vue.min.js",
+      "images/qhjd_checkbox_a.png",
+      "libs/fonts/mui.ttf"
+    ]
+  },
+  "pages/recovery_add.html": {
+    "refer": [
+      "pages/recovery_wait_list.html",
+      "pages/recovery_custom_crop.html"
+    ],
+    "resources": [
+      "libs/css/mui.dtpicker.css",
+      "libs/js/mui.dtpicker.js",
+      "libs/fonts/mui.ttf",
+      "libs/js/mui.picker.min.js",
+      "libs/css/mui.min.css",
+      "js/comm.js",
+      "libs/css/mui.picker.min.css",
+      "libs/js/mui.min.js",
+      "css/comm.css",
+      "libs/js/vue.min.js",
+      "images/often.png"
+    ]
+  },
+  "pages/machining_list.html": {
+    "refer": [
+      "pages/machining_packing.html",
+      "pages/machining_list_add.html"
+    ],
+    "resources": [
+      "libs/fonts/mui.ttf",
+      "libs/js/mui.picker.min.js",
+      "libs/css/mui.picker.min.css",
+      "images/jidi_icon_down.png",
+      "images/qhjd_icon_back.png",
+      "images/qhjd_icon_add.png",
+      "libs/js/vue.min.js",
+      "js/immersed.js"
+    ]
+  },
+  "pages/recovery_custom_crop.html": {
+    "refer": [
+      "pages/recovery_add.html"
+    ],
+    "resources": [
+      "libs/fonts/mui.ttf",
+      "libs/js/mui.picker.min.js",
+      "libs/css/mui.min.css",
+      "js/comm.js",
+      "libs/css/mui.picker.min.css",
+      "libs/js/mui.min.js",
+      "images/qhjd_icon_back.png",
+      "css/comm.css",
+      "js/immersed.js",
+      "libs/js/vue.min.js"
+    ]
+  },
+  "pages/machining_main.html": {
+    "resources": [
+      "pages/machining_list.html",
+      "libs/js/update.js",
+      "libs/css/mui.min.css",
+      "images/jiagong_tabicon_bz.png",
+      "js/comm.js",
+      "images/jiagong_tabicon_cjg.png",
+      "libs/js/laytpl.js",
+      "libs/js/mui.min.js",
+      "images/jiagong_tabicon_bz_a.png",
+      "css/comm.css",
+      "js/immersed.js",
+      "images/jiagong_tabicon_cjg_a.png"
+    ],
+    "refer": [
+      "pages/machining_list.html",
+      "pages/machining_packing.html"
+    ]
+  },
+  "pages/machining_packing.html": {
+    "refer": [
+      "pages/machining_list_add.html",
+      "pages/machining_packing_add.html"
+    ],
+    "resources": [
+      "images/qhjd_icon_back.png",
+      "images/qhjd_icon_add.png",
+      "libs/js/mui.picker.min.js",
+      "libs/css/mui.picker.min.css",
+      "images/jidi_icon_down.png",
+      "libs/js/vue.min.js"
+    ]
+  },
+  "pages/machining_packing_add.html": {
+    "refer": [
+      "pages/machining_packing_add_list.html"
+    ],
+    "resources": []
+  },
+  "pages/index_modal_nav.html": {
+    "refer": [
+      "pages/base_monitor.html",
+      "pages/base_main.html",
+      "pages/recovery_list.html",
+      "pages/base_farming.html",
+      "pages/machining_list.html",
+      "pages/testing_list.html",
+      "pages/machining_packing.html",
+      "pages/base_details.html"
+    ],
+    "resources": []
+  },
+  "pages/index_order_details.html": {
+    "refer": [
+      "pages/search_result.html"
+    ],
+    "resources": []
+  },
+  "pages/testing_list.html": {
+    "refer": [
+      "pages/testting_add.html",
+      "pages/testting_edite.html"
+    ],
+    "resources": [
+      "libs/fonts/mui.ttf",
+      "libs/css/mui.min.css",
+      "js/comm.js",
+      "libs/js/mui.min.js",
+      "css/comm.css",
+      "libs/js/vue.min.js"
+    ]
+  },
+  "pages/index_userInfo_updatepsw.html": {
+    "refer": [
+      "login.html"
+    ],
+    "resources": [
+      "js/comm.js"
+    ]
+  },
+  "pages/index_message_new.html": {
+    "refer": [
+      "pages/index_message_new_addUser.html"
+    ],
+    "resources": []
+  },
+  "pages/testting_add.html": {
+    "resources": [
+      "libs/js/mui.picker.min.js",
+      "libs/css/mui.picker.min.css",
+      "images/add_icon_close.png"
+    ],
+    "refer": []
+  },
+  "pages/index_userInfo_edit.html": {
+    "resources": [
+      "libs/fonts/mui.ttf",
+      "libs/js/mui.picker.min.js",
+      "libs/css/mui.picker.min.css"
+    ],
+    "refer": []
+  },
+  "pages/index_menu.html": {
+    "refer": [
+      "pages/index_userInfo_updatepsw.html",
+      "pages/index_userInfo_edit.html"
+    ]
+  }
+}

@@ -1,0 +1,72 @@
+/*取消按钮*/
+.search-cancebtn{
+	line-height: 45px;
+	color: #fff;
+}
+.history-search{
+	margin: 0;
+	padding-left: 16px;
+	width: 80%;
+}
+.history-search li{
+	background: #fff;
+	margin-right: 8px;
+	padding: 0 15px;
+	height: 26px;
+	line-height: 26px;
+	border-radius: 14px ;
+	margin-bottom: 10px;
+} 
+
+/********列表组*/
+.list-item{
+	padding: 18px 16px 10px;
+	overflow: hidden;
+	padding-bottom: 10px;
+}
+
+/********搜索结果界面样式表*/
+/*绿色的一条*/
+.green-line{
+	height: 8px;
+	width: 100%;
+	border-radius: 4px;
+	background: #6ec73e;
+	margin-top: 6px;
+}
+/*搜索结构基地列表*/
+.base-list h5,
+.cylist h5{
+	background: #fff;
+	padding-top: 15px;
+	padding-left: 15px;
+	margin: 0;
+}
+/*去掉ul上边线*/
+.mui-table-view:before{
+	background-color: #fff;
+}
+.mui-table-view{
+	background-color: #efeff4; 
+}
+/*下边线*/
+.base-list .mui-table-view-cell:after{
+	left: 0;
+	background-color: #c8c7cc;
+}
+
+.base-list .mui-table-view-cell{
+	background: #fff;
+	margin-bottom: 0;
+}
+/*基地面积*/
+.base-list .base-area{
+	width:50px;
+	height:16px; 
+	line-height: 16px;
+	background: #3ED4FF;
+	border-radius: 4px;
+	color: #fff;
+	text-align: center !important;
+}
+

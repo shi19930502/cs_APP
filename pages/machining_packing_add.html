@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../libs/css/mui.picker.min.css" />
+		<link rel="stylesheet" href="../css/comm.css">
+
+	</head>
+	<style>
+		.packging_bj {
+			background-color: #E3E3E3;
+		}
+		.pingzhong_biaoji {
+			color: #3ed4ff;
+			font-size: 12px;
+		}
+		.caish_zt {
+			background-color: #3ed4ff;
+			font-size: 12px;
+			color: #FFFFFF;
+			line-height: 40px;
+			border-radius: 5px;
+			padding: 2px;
+			margin-left: 60px;
+		}
+		.lingshi_bj {
+			background-color: #FFFFFF;
+		}
+		.lingshi_bj .shanchu_bottom {
+			color: #E44B60;
+			text-align: right;
+			margin-top: 12px;
+		}
+		.mbtenpx .xuanze_bz {
+			width: 35%;
+			padding: 10px;
+			margin: 0;
+			text-align: center;
+		}
+		.mbtenpx .xuanze_bz input {
+			width: 18px;
+			height: 18px;
+			background-color: #70C93E;
+		}
+		.addicon {
+			color: #6EC73E;
+			position: absolute;
+			top: 50%;
+			margin-top: -12px;
+			right: 15px;
+		}
+		.addicon span {
+			font-size: 16px;
+			padding-left: 5px;
+		}
+		.totalQuantity {
+			text-align: right;
+			line-height: 50px;
+			/*margin-top: -10px;*/
+			font-size: 16px;
+			padding-right: 15px;
+		}
+	</style>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<header class="mui-bar mui-bar-nav" id="header">
+					<div class="mui-action-back mui-pull-left navicon-back1"></div>
+					<h1 id="title" class="mui-title">{{documentTypeName}}</h1>
+					<div class="mui-pull-right back-text" @tap="save">保存</div>
+				</header>
+				<div class="mui-content" v-show="load">
+					<div class="mui-input-group mbtenpx">
+						<div class="mui-input-row" v-show="saveType == 0">
+							<a class="mui-navigate-right" @tap="selectWarehouse(true)"></a>
+							<label>原料仓库</label>
+							<span class="fr select-text mui-ellipsis" @tap="selectWarehouse(true)">{{ylWarehouseName}}</span>
+						</div>
+						<div class="mui-input-row bfc" v-show="saveType == 0">
+							<label>包装原料</label>
+							<span class="fr mui-icon mui-icon-plus addicon" @tap="toMachiningpackingaddlist" v-show="isAdd">
+								<span>添加</span>
+							</span>
+						</div>
+						<ul class="mui-table-view  mbtenpx-list">
+							<li class="mui-table-view-cell mui-media packging_bj" v-for="(d, index) in documentDetailList">
+								<div class="mui-row">
+									<div class="mui-col-xs-6">
+										<div class="mui-media-body">
+											<span class="fruit-name" style="font-size: 16px;">{{d.templateName}}</span>
+											<p class='mui-ellipsis'>产品品种：{{d.varietiesName}}</p>
+											<p class='mui-ellipsis'>单位：{{d.unitName}}</p>
+											<p class='mui-ellipsis' v-if="!isAdd">库存数量：{{d.totalAvailableQuantity + '(' + d.unitName + ')'}}</p>
+											<p class='mui-ellipsis' v-else>库存数量：{{d.availableQuantity + '(' + d.unitName + ')'}}</p>
+											<p class='mui-ellipsis'>产品等级：{{d.grade == 1 ? '一等品' :d.grade == 2 ? '二等品': '三等品'}}</p>
+											<p class='mui-ellipsis'>规格：{{d.unitName == 'KG' ? '无' : d.netWeight + 'KG/' + d.unitName}}</p>
+											<p class='mui-ellipsis'>来源类型：{{d.typeName}}</p>
+										</div>
+									</div>
+									<div class="mui-col-xs-6" style="text-align: right;">
+										<span class="fruit-name" style="font-size: 12px;">批次号：{{d.batchId}}</span>
+									</div>
+								</div>
+								<div class="mui-row" style="margin-top: 5px;">
+									<div class="mui-col-xs-6">
+										<h5>出库数量:</h5>
+									</div>
+									<div class="mui-col-xs-6">
+										<div class="mui-numbox" style="width: 150px;height: 30px; float: right;">
+											<button class="mui-btn mui-btn-numbox-minus" type="button" @tap="reduceQuantity(event,index,d)">-</button>
+											<input v-if="!isAdd" class="mui-input-numbox" type="text" :value="d.quantity" @input="checkCKSL(d.quantity,d.totalAvailableQuantity,index,event,d)" />
+											<input v-else class="mui-input-numbox" type="text" value="1" @input="checkCKSL(1,d.availableQuantity,index,event,d)" />
+											<button class="mui-btn mui-btn-numbox-plus" type="button" @tap="addQuantity(event,index,d)">+</button>
+										</div>
+										<!--<input class="mui-numbox-input" type="number" value="0" @input="checkCKSL(1,d.availableQuantity,index,event,d)" style="border-bottom: 1px solid #ccc; width: 50%;float: right; text-align: center;" />-->
+									</div>
+								</div>
+								<div class="mui-row edit-item lingshi_bj">
+									<h6 class="mui-col-sm-6 mui-col-xs-6">仓库：{{d.warehouseName}}</h6>
+									<h4 v-show="isShowForm" class="mui-col-sm-5 mui-col-xs-5 shanchu_bottom"><span @tap="deleteDetailByDetailId(d.detailId)">删除</span></h4>
+								</div>
+							</li>
+						</ul>
+						<div class="totalQuantity"><span>{{isShowForm ? '总共包装' : '总共出库'}}</span>：{{totalQuantity}}KG</div>
+					</div>
+					<div v-show="isShowForm">
+						<div class="mui-input-group mbtenpx">
+							<div class="mui-input-row">
+								<a class="mui-navigate-right" v-if="isAdd"></a>
+								<label>包装入库</label>
+								<span class="fr select-text mui-ellipsis" @tap="selectWarehouse(false)" v-if="isAdd">{{packWarehouseId}}</span>
+								<span class="fr select-text mui-ellipsis" v-else>{{packWarehouseId}}</span>
+							</div>
+							<div class="mui-input-row">
+								<a class="mui-navigate-right" v-if="isAdd"></a>
+								<label>产品名称</label>
+								<span class="fr select-text mui-ellipsis" @tap="selectModelTemplate" v-if="isAdd">{{templateId}}</span>
+								<span class="fr select-text mui-ellipsis" v-else>{{templateId}}</span>
+							</div>
+							<div class="mui-input-row">
+								<a class="mui-navigate-right" v-if="isAdd"></a>
+								<label>产品品种</label>
+								<span class="fr select-text mui-ellipsis" v-if="modelVarietiesList.length == 0">{{varietiesId}}</span>
+								<span class="fr select-text mui-ellipsis" v-else-if="isAdd" @tap="selectModelVarieties">{{varietiesId}}</span>
+								<span class="fr select-text mui-ellipsis" v-else>{{varietiesId}}</span>
+							</div>
+							<div class="mui-input-row">
+								<a class="mui-navigate-right"></a>
+								<label>包装时间</label>
+								<span class="fr select-text mui-ellipsis" @tap="datePicker">{{operationDate}}</span>
+							</div>
+							<div class="mui-input-row">
+								<a class="mui-navigate-right"></a>
+								<label style="width:30%;">包装单位</label>
+								<span class="fr select-text mui-ellipsis" @tap="selectbasUnit" id="unitId">{{unitName}}</span>
+							</div>
+							<div class="mui-input-row" v-show="showNetWeight">
+								<label>规格</label>
+								<input @input="checkUnmber('netWeight')" v-model="packageParam.netWeight" type="text" placeholder="请输入(必填)" style="width: 40%;float: left;">
+								<span style="float: right;padding-right: 40px;">KG/{{unitName}}</span>
+							</div>
+							<div class="mui-input-row">
+								<label>包装数量</label>
+								<input @input="checkUnmber('quantity')" v-model="packageParam.quantity" type="text" placeholder="请输入(必填)" style="width: 40%;float: left;">
+								<span style="float: right;padding-right: 40px;">{{unitName}}</span>
+							</div>
+							<div class="mui-input-row">
+								<label>保质期</label>
+								<input @input="checkUnmber('validity')" v-model="packageParam.validity" type="text" placeholder="请输入(必填)" style="width: 40%;float: left;">
+								<span style="float: right;padding-right: 40px;">天</span>
+							</div>
+							<div class="mui-input-row">
+								<label>单价</label>
+								<input @input="checkUnmber('price')" v-model="packageParam.price" type="text" placeholder="请输入(必填)" style="width: 40%;float: left;">
+								<span style="float: right;padding-right: 40px;">元/{{unitName}}</span>
+							</div>
+						</div>
+						<div class="mui-input-group mbtenpx">
+							<div class="mui-input-row" @tap="selectHandleUser">
+								<a class="mui-navigate-right"></a>
+								<label>经办人</label>
+								<span class="fr select-text mui-ellipsis">{{handleUserName}}</span>
+							</div>
+						</div>
+						<div class="mui-input-group mbtenpx">
+							<div class="mui-input-row textarea-row">
+								<label>备注</label>
+								<textarea v-model="packageParam.remark" placeholder="请输入 "></textarea>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>
+
+		<script src="../libs/js/mui.min.js "></script>
+		<script src="../libs/js/vue.min.js "></script>
+		<script src="../libs/js/mui.picker.min.js"></script>
+		<script src="../js/comm.js "></script>
+		<script>
+			var vm = new Vue({
+				el: '#app',
+				template: indexTpl,
+				data: function() {
+					return {
+						isnum_alert: 0,
+						load: false,
+						// 保存路径
+						saveUrl: '',
+						// 0新增1出库包存2入库保存 
+						saveType: 0,
+						// 是否显示填写form表单
+						isShowForm: true,
+						// 是否显示规格
+						showNetWeight: false,
+						// 编辑页面是出库还是入库
+						documentTypeName: '',
+						// 是否为新增
+						isAdd: true,
+						loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+						// 单位选择列表
+						basUnitList: [],
+						// 人员选择列表
+						handleUserList: [],
+						// 仓库选择类别
+						warehouseList: [],
+						// 产品名称选择列表
+						modelTemplateList: [],
+						// 品种选择列表
+						modelVarietiesList: [],
+
+						// 计算总数
+						totalQuantity: 0,
+						// 千克数量
+						kgs: 1,
+						// 非千克数量
+						fkgs: 0,
+						unitName: '请选择(必填)',
+						handleUserName: '请选择(必填)',
+						packWarehouseId: '请选择(必填)',
+						templateId: '请选择(必填)',
+						ylWarehouseName: '请选择(必填)',
+						ylWarehouseId: '',
+						varietiesId: '无',
+						operationDate: '请选择(必填)',
+						operationDate1: '', //出库
+						documentId: '',
+						paramObj: {
+							packageParam: '', // 主表信息（json）
+							documentDetailList: '', //原料明细（json）
+							userId: JSON.parse(localStorage.getItem('loginUserInfo')).userId, //当前登录人Id
+							username: JSON.parse(localStorage.getItem('loginUserInfo')).username, //当前登录人名称
+							enterpriseId: JSON.parse(localStorage.getItem('loginUserInfo')).enterpriseId, //企业ID
+						},
+						packageParam: {
+							warehouseId: '', //出库Id
+							packWarehouseId: '', //包装入库Id
+							handleUserId: '', //操作人Id
+							operationDate: '', //操作时间
+							baseId: '', //（就传空字符串）
+							userId: JSON.parse(localStorage.getItem('loginUserInfo')).userId, //当前登录人Id
+							username: JSON.parse(localStorage.getItem('loginUserInfo')).username, //当前登录人名称
+							createTime: this.GetDateStr(0), //创建时间（当前时间）
+							remark: '', //备注,
+							templateId: '', //模板Id
+							varietiesId: '', //	品种Id
+							unitId: '', //单位Id
+							unitName: '', //单位名称,
+							price: '', //单价
+							netWeight: 1, //规格,  //默认  当unitName为KG时，规格为空
+							netWeightMsg: '', //规格信息默认空字符串
+							priceMsg: '元/KG', //默认 "元/KG",
+							quantity: '', //包装数量 
+							totalQuantity: 0, //出库总数
+							validity: '', //保质期默认30天
+							grade: 1, //等级默认1//等级
+							batchId: '',
+							totalLoseQuantity: 0
+						},
+						// 查询的原料列表
+						documentDetailList: [],
+					}
+				},
+				mounted: function() {
+					mui.init({
+						beforeback: function() {
+							//获得列表界面的webview  
+							var list = plus.webview.currentWebview().opener();
+							//触发列表界面的自定义事件（refresh）,从而进行数据刷新  
+							mui.fire(list, 'refresh');
+							//返回true，继续页面关闭逻辑  
+							return true;
+						}
+					});
+					var vm = this;
+					// 获取单位列表
+					this.getBasUnitList();
+					// 获取操作人
+					this.getUserList();
+					// 获取仓库列表
+					this.getWarehouseList();
+					// 获取产品名称列表
+					this.getModelTemplateList();
+					// 监听原料返回传参
+					window.addEventListener('getItem', function(e) {
+						vm.packageParam.batchId = e.detail.item.batchId
+						//查询原料详情
+						getDataList(APIURL + 'business/documentDetail/queryDocumentDetailList', {
+							warehouseId: e.detail.item.warehouseId,
+							documentTypeType: 0, //（这个暂时传0）
+							availableQuantityGTZero: true, //（暂时传这个值）
+							templateId: e.detail.item.templateId,
+							varietiesId: e.detail.item.varietiesId,
+							batchId: e.detail.item.batchId,
+							grade: e.detail.item,
+							enterpriseId: vm.loginUserInfo.enterpriseId //企业Id
+						}, function(d) {
+							if(d && d.state === 0) {
+								if(d.aaData) {
+									for(var i in d.aaData) {
+										d.aaData[i].packageCapacity = 1;
+										d.aaData[i].loseCapacity = 0;
+									}
+									vm.documentDetailList = d.aaData;
+									vm.totalQuantity = d.aaData[0].netWeight
+								} else {
+									vm.documentDetailList = [];
+								}
+							}
+						})
+					});
+
+					// 获取编辑参数
+					mui.plusReady(function() {
+						var self = plus.webview.currentWebview();
+						vm.load = true;
+
+						self.setStyle({
+							scrollIndicator: 'none'
+						})
+						if(self.item) {
+							vm.isAdd = false;
+							if(self.item.documentTypeId == 11) {
+								vm.documentTypeName = '包装入库编辑';
+								vm.isShowForm = true;
+								vm.saveType = 2;
+								vm.paramObj.documentId = self.item.documentId;
+								// 包装入库查询
+								getDataList(APIURL + 'business/documentDetail/queryDocumentDetailList', {
+									documentId: self.item.documentId,
+									enterpriseId: vm.loginUserInfo.enterpriseId //企业Id
+								}, function(d) {
+									if(d && d.state === 0) {
+										if(d.aaData) {
+											vm.packageParam.detailId = d.aaData[0].detailId;
+											vm.packageParam.warehouseId = d.aaData[0].warehouseId;
+											vm.packageParam.packWarehouseId = d.aaData[0].packWarehouseId;
+											vm.packageParam.handleUserId = d.aaData[0].handleUserId;
+											vm.packageParam.operationDate = d.aaData[0].operationDate.split(' ')[0];
+											vm.packageParam.baseId = d.aaData[0].baseId;
+											vm.packageParam.createTime = d.aaData[0].createTime;
+											vm.packageParam.remark = d.aaData[0].remark;
+											vm.packageParam.templateId = d.aaData[0].templateId;
+											vm.packageParam.varietiesId = d.aaData[0].varietiesId;
+											vm.packageParam.unitId = d.aaData[0].unitId;
+											vm.packageParam.unitName = d.aaData[0].unitName;
+											vm.packageParam.price = d.aaData[0].price;
+											vm.packageParam.netWeight = d.aaData[0].netWeight;
+											vm.packageParam.netWeightMsg = d.aaData[0].netWeightMsg;
+											vm.packageParam.priceMsg = d.aaData[0].priceMsg;
+											vm.packageParam.quantity = d.aaData[0].quantity;
+											vm.packageParam.totalQuantity = d.aaData[0].totalQuantity;
+											vm.packageParam.validity = d.aaData[0].validity;
+											vm.packageParam.grade = d.aaData[0].grade;
+											// 赋值选择列表
+											vm.packWarehouseId = d.aaData[0].warehouseName;
+											vm.unitName = d.aaData[0].unitName;
+											vm.handleUserName = d.aaData[0].handleUsername;
+											vm.templateId = d.aaData[0].templateName;
+											vm.varietiesId = d.aaData[0].varietiesName;
+
+											vm.operationDate = d.aaData[0].operationDate.split(' ')[0];
+											// 获取品种选择列表
+											vm.getModelVarietiesList(d.aaData[0].templateId);
+											// 是否显示规格字段
+											if(vm.packageParam.unitName != 'KG') {
+												vm.showNetWeight = true;
+											} else {
+												vm.showNetWeight = false;
+											}
+											// 总共包装
+											vm.totalQuantity = (d.aaData[0].quantity) * (d.aaData[0].netWeight)
+
+										}
+									}
+								})
+							} else {
+								vm.documentTypeName = '包装出库编辑';
+								vm.isShowForm = false;
+								vm.saveType = 1;
+								vm.documentId = self.item.documentId;
+								vm.operationDate1 = self.item.operationDate;
+								vm.packageParam.documentId = self.item.documentId;
+								// 查询出库原料详情
+								getDataList(APIURL + 'business/documentDetail/queryPackageDocumentDetailList', {
+									documentId: self.item.documentId,
+									enterpriseId: vm.loginUserInfo.enterpriseId
+								}, function(d) {
+									if(d && d.state === 0) {
+										if(d.aaData) {
+											for(var i in d.aaData) {
+												d.aaData[i].packageCapacity = d.aaData[i].quantity;
+												// 计算总出库数量
+												if(d.aaData[i].unitName == 'KG') {
+													vm.kgs = d.aaData[i].quantity;
+												} else {
+													vm.kgs = 0;
+													vm.fkgs = d.aaData[i].quantity * d.aaData[i].netWeight;
+												}
+												vm.totalQuantity = vm.kgs + vm.fkgs;
+												// 添加报损量字段
+												d.aaData[i].loseCapacity = 0;
+											}
+											vm.documentDetailList = d.aaData;
+										}
+									}
+								})
+							}
+						} else {
+							vm.documentTypeName = '新增包装';
+						}
+					})
+				},
+				methods: {
+					/**
+					 * 保存
+					 */
+					save: function() {
+						var vm = this;
+						var check = true;
+						// 必填字段
+						if(vm.saveType == 0 || vm.saveType == 2) {
+							var checkArr = ['包装入库:packWarehouseId', '产品名称:templateId', '包装时间:operationDate', '包装数量:quantity', '保质期:validity', '单价:price', '经办人:handleUserId', '规格:netWeight'];
+							for(var i in checkArr) {
+								if(vm.packageParam[checkArr[i].split(':')[1]] == '') {
+									mui.alert('请填写' + checkArr[i].split(':')[0]);
+									check = false;
+									return false;
+								} else {
+									check = true;
+								}
+							}
+						}
+						vm.packageParam.totalQuantity = vm.totalQuantity;
+						vm.packageParam.quantity = vm.totalQuantity;
+
+						// 新增保存
+						if(vm.saveType == 0) {
+							if(vm.documentDetailList.length > 0) {
+								vm.saveUrl = APIURL + 'business/document/packageProduct';
+								vm.packageParam.warehouseId = vm.documentDetailList[0].warehouseId;
+								vm.paramObj.packageParam = JSON.stringify(vm.packageParam);
+								vm.paramObj.documentDetailList = JSON.stringify(vm.documentDetailList);
+								check = true;
+							} else {
+								mui.alert('请添加原料');
+								check = false;
+							}
+						}
+						// 出库保存
+						if(vm.saveType == 1) {
+							vm.saveUrl = APIURL + 'business/document/editOutStockPackage';
+							var packages = {
+								warehouseId: "",
+								packWarehouseId: "",
+								totalQuantity: vm.totalQuantity,
+								quantity: null,
+								documentId: vm.documentId,
+								operationDate: vm.operationDate1
+							}
+							vm.paramObj.packageParam = JSON.stringify(packages)
+							vm.paramObj.documentDetailList = JSON.stringify(vm.documentDetailList);
+						}
+						// 入库保存
+						if(vm.saveType == 2) {
+							vm.saveUrl = APIURL + 'business/document/editInStockPackage';
+							vm.paramObj.packageParam = JSON.stringify(vm.packageParam);
+							delete vm.paramObj.documentDetailList;
+						}
+						// 调接口保存
+						if(check) {
+							if(JSON.parse(vm.paramObj.packageParam).totalQuantity == 0) {
+								mui.alert('请输入出库数量！');
+								return false;
+							}
+							getDataList(vm.saveUrl, vm.paramObj, function(d) {
+								if(d && d.state === 0) {
+									mui.toast('保存成功');
+									mui.back();
+								} else {
+									mui.toast('保存失败');
+								}
+							})
+						}
+					},
+					/**
+					 * 添加原料
+					 */
+					toMachiningpackingaddlist: function() {
+						var vm = this;
+						if(this.ylWarehouseName == '请选择(必填)') {
+							mui.alert('请选择原料仓库');
+							return false;
+						}
+						mui.openWindow({
+							url: 'machining_packing_add_list.html',
+							id: 'machining_packing_add_list',
+							styles: {
+								titleNView: { // 窗口的标题栏控件
+									titleText: vm.ylWarehouseName,
+									backgroundColor: "#70C93E",
+									titleColor: "#fff",
+									autoBackButton: true,
+									titleSize: "18px",
+								}
+							},
+							extras: {
+								warehouseId: vm.ylWarehouseId
+							}
+						})
+					},
+					/**
+					 * 选择单位
+					 */
+					selectbasUnit: function() {
+						var vm = this;
+						var userPicker = new mui.PopPicker();
+						userPicker.show(function(items) {
+							vm.packageParam.unitId = items[0].value;
+							vm.packageParam.unitName = items[0].text;
+							vm.unitName = items[0].text;
+							if(vm.packageParam.unitName != 'KG') {
+								vm.showNetWeight = true;
+							} else {
+								vm.showNetWeight = false;
+							}
+							console.log(vm.packageParam.unitName)
+						});
+						userPicker.setData(vm.basUnitList);
+					},
+					/**
+					 * 获取单位列表
+					 */
+					getBasUnitList: function() {
+						var vm = this;
+						getDataList(APIURL + 'business/basUnit/list', {
+							enterpriseId: vm.loginUserInfo.enterpriseId
+						}, function(d) {
+							if(d && d.state === 0) {
+								if(d.aaData) {
+									for(var i in d.aaData) {
+										if(d.aaData[i].name == 'KG') {
+											// 默认选择KG单位的
+											vm.packageParam.unitId = d.aaData[i].unitId;
+											vm.packageParam.unitName = d.aaData[i].name;
+											vm.unitName = d.aaData[i].name;
+										}
+										var obj = {
+											value: d.aaData[i].unitId,
+											text: d.aaData[i].name
+										};
+										vm.basUnitList.push(obj)
+									}
+								}
+							}
+						})
+					},
+					/**
+					 * 选择操作人
+					 */
+					selectHandleUser: function() {
+						var vm = this;
+						var userPicker = new mui.PopPicker();
+						userPicker.show(function(items) {
+							vm.packageParam.handleUserId = items[0].value;
+							vm.handleUserName = items[0].text;
+							console.log(vm.packageParam.handleUserId)
+						});
+						userPicker.setData(vm.handleUserList);
+					},
+					/**
+					 * 获取操作人员列表
+					 */
+					getUserList: function() {
+						var vm = this;
+						getDataList(APIURL + 'business/user/list', {
+							enterpriseId: vm.loginUserInfo.enterpriseId,
+						}, function(d) {
+							if(d && d.state === 0) {
+								if(d.aaData) {
+									for(var i in d.aaData) {
+										var obj = {
+											value: d.aaData[i].userId,
+											text: d.aaData[i].nickName
+										};
+										vm.handleUserList.push(obj);
+									}
+								}
+							}
+						})
+					},
+					/**
+					 * 选择仓库
+					 * @param {Object} isyl
+					 */
+					selectWarehouse: function(isyl) {
+						var vm = this;
+						var userPicker = new mui.PopPicker();
+						userPicker.show(function(items) {
+							if(isyl) {
+								vm.ylWarehouseName = items[0].text;
+								vm.ylWarehouseId = items[0].value;
+							} else {
+								vm.packageParam.packWarehouseId = items[0].value;
+								vm.packWarehouseId = items[0].text;
+								console.log(vm.packageParam.packWarehouseId)
+							}
+						});
+						userPicker.setData(vm.warehouseList);
+					},
+					/**
+					 * 获取仓库列表
+					 */
+					getWarehouseList: function() {
+						var vm = this;
+						getDataList(APIURL + 'business/warehouse/list', {
+							enterpriseId: vm.loginUserInfo.enterpriseId,
+						}, function(d) {
+							if(d && d.state === 0) {
+								if(d.aaData) {
+									for(var i in d.aaData) {
+										var obj = {
+											value: d.aaData[i].warehouseId,
+											text: d.aaData[i].name
+										};
+										vm.warehouseList.push(obj);
+									}
+								}
+							}
+						})
+					},
+					/**
+					 * 选择产品
+					 */
+					selectModelTemplate: function() {
+						var vm = this;
+						var userPicker = new mui.PopPicker();
+						userPicker.show(function(items) {
+							vm.packageParam.templateId = items[0].value;
+							vm.templateId = items[0].text;
+							vm.getModelVarietiesList(items[0].value);
+						});
+						userPicker.setData(vm.modelTemplateList);
+					},
+					/**
+					 * 获取产品名称列表
+					 */
+					getModelTemplateList: function() {
+						var vm = this;
+						getDataList(APIURL + 'business/modelTemplate/list', {
+							enterpriseId: vm.loginUserInfo.enterpriseId,
+						}, function(d) {
+							if(d && d.state === 0) {
+								if(d.aaData) {
+									for(var i in d.aaData) {
+										var obj = {
+											value: d.aaData[i].templateId,
+											text: d.aaData[i].scientificName
+										};
+										vm.modelTemplateList.push(obj);
+									}
+								}
+							}
+						})
+					},
+					/**
+					 * 选择产品品种
+					 */
+					selectModelVarieties: function() {
+						var vm = this;
+						var userPicker = new mui.PopPicker();
+						userPicker.show(function(items) {
+							vm.packageParam.varietiesId = items[0].value;
+							vm.varietiesId = items[0].text;
+						});
+						userPicker.setData(vm.modelVarietiesList);
+					},
+					/**
+					 * 获取品种列表
+					 * @param {Object} templateId
+					 */
+					getModelVarietiesList: function(templateId) {
+						var vm = this;
+						getDataList(APIURL + 'business/modelVarieties/list', {
+							enterpriseId: vm.loginUserInfo.enterpriseId,
+							templateId: templateId
+						}, function(d) {
+							if(d && d.state === 0) {
+								if(d.aaData) {
+									vm.modelVarietiesList = [];
+									for(var i in d.aaData) {
+										var obj = {
+											value: d.aaData[i].varietiesId,
+											text: d.aaData[i].name
+										};
+										vm.modelVarietiesList.push(obj);
+									}
+									if(vm.isAdd) {
+										vm.varietiesId = vm.modelVarietiesList[0].text;
+										vm.packageParam.varietiesId = vm.modelVarietiesList[0].value;
+									}
+								} else {
+									vm.varietiesId = '无';
+									vm.packageParam.varietiesId = '';
+									vm.modelVarietiesList = [];
+								}
+							}
+						})
+					},
+					/**
+					 * 时间选择器
+					 * @param {Object} type
+					 */
+					datePicker: function(type) {
+						var vm = this;
+						//首先获取到当前的年月日
+						var cdate = new Date();
+						var s = cdate.getSeconds();
+						var year = cdate.getFullYear();
+						var month = cdate.getMonth() + 1;
+						var day = cdate.getDate();
+						var h = cdate.getHours(); //获取小时
+						var m = cdate.getMinutes(); //获取分钟
+						var s = cdate.getSeconds(); //获取秒
+						var dtPicker = new mui.DtPicker({
+							type: 'date',
+							//							endYear: year,
+							//							endMonth: month,
+							//							endDay: day,
+						});
+						dtPicker.show(function(rs) {
+							vm.packageParam.operationDate = rs.text;
+							vm.operationDate = rs.text;
+						})
+					},
+					/**
+					 * 删除原料详情
+					 * @param {Object} id
+					 */
+					deleteDetailByDetailId: function(id) {
+						var vm = this;
+						vm.kgs = 0
+						vm.totalQuantity = 0;
+						for(var i in vm.documentDetailList) {
+							if(vm.documentDetailList[i].detailId == id) {
+								vm.documentDetailList.splice(i, 1)
+							}
+						}
+					},
+					/**
+					 * 加数量的方法
+					 * @param {Object} e
+					 * @param {Object} index
+					 * @param {Object} d
+					 */
+					addQuantity: function(e, index, d) {
+						var vm = this;
+						var all;
+
+						if(d.totalAvailableQuantity) {
+							all = d.totalAvailableQuantity
+						} else {
+							all = d.availableQuantity
+						}
+						if(e.target.previousSibling.previousSibling.value < all) {
+							e.target.previousSibling.previousSibling.value++;
+							vm.documentDetailList[index].packageCapacity = e.target.previousSibling.previousSibling.value;
+							// 修改传的数量参数和新增传的数量参数不一样
+							vm.documentDetailList[index].quantity = e.target.previousSibling.previousSibling.value;
+							if(d.unitName == 'KG') {
+								vm.kgs++;
+							} else {
+								vm.kgs = 0;
+								vm.fkgs = d.netWeight * e.target.previousSibling.previousSibling.value;
+							}
+							vm.totalQuantity = vm.fkgs + vm.kgs;
+						}
+					},
+					/**
+					 * 减数量的方法
+					 * @param {Object} e
+					 * @param {Object} index
+					 * @param {Object} d
+					 */
+					reduceQuantity: function(e, index, d) {
+						var vm = this;
+						if(e.target.nextSibling.nextSibling.value > 1) {
+							e.target.nextSibling.nextSibling.value--;
+							vm.documentDetailList[index].packageCapacity = e.target.nextSibling.nextSibling.value;
+							// 修改传的数量参数和新增传的数量参数不一样
+							vm.documentDetailList[index].quantity = e.target.nextSibling.nextSibling.value;
+							if(d.unitName == 'KG') {
+								vm.kgs--;
+							} else {
+								vm.kgs = 0;
+								vm.fkgs = d.netWeight * e.target.nextSibling.nextSibling.value;
+							}
+							vm.totalQuantity = vm.fkgs + vm.kgs;
+						}
+					},
+					/**
+					 * 验证只能输正整数
+					 */
+					checkUnmber: function(id) {
+						var reg = /^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/
+						if(this.packageParam[id] != '') {
+							if(!reg.test(this.packageParam[id])) {
+								this.isnum_alert++;
+								if(this.isnum_alert == 1) {
+									mui.alert('只能输入数字，请重新输入！', function() {
+										this.isnum_alert = 0
+									}.bind(this));
+								}
+								this.packageParam[id] = '';
+							}
+						}
+					},
+					/**
+					 * 验证出库数量
+					 */
+					checkCKSL: function(val, zl, index, e, d) {
+						var vm = this;
+						var _this = e.target
+						var reg = /^([1-9]\d*|[0]{1,1})$/
+						if(_this.value != '') {
+							if(!reg.test(_this.value)) {
+								mui.alert('只能输入数字，请重新输入！');
+								_this.value = val;
+								vm.documentDetailList[index].quantity = val;
+								vm.documentDetailList[index].packageCapacity = val;
+
+								vm.totalQuantity = val * d.netWeight;
+								vm.kgs = 1
+								vm.fkgs = 0
+								return false;
+							}
+							if(_this.value > zl) {
+								mui.alert('出库数量不能大于库存数量，请重新输入！');
+								_this.value = val;
+								vm.documentDetailList[index].quantity = val;
+								vm.documentDetailList[index].packageCapacity = val;
+
+								vm.totalQuantity = val * d.netWeight;
+								vm.kgs = 1
+								vm.fkgs = 0
+								return false;
+							}
+						} else {
+							_this.value = '';
+							if(d.unitName == 'KG') {
+								vm.documentDetailList[index].quantity = _this.value;
+								vm.documentDetailList[index].packageCapacity = _this.value;
+
+								vm.kgs = _this.value - 0;
+							} else {
+								vm.kgs = 0;
+								vm.fkgs = d.netWeight * _this.value - 0;
+							}
+							vm.totalQuantity = vm.fkgs + vm.kgs;
+						}
+
+						if(d.unitName == 'KG') {
+							vm.documentDetailList[index].quantity = _this.value;
+							vm.documentDetailList[index].packageCapacity = _this.value;
+
+							vm.kgs = _this.value - 0;
+						} else {
+							vm.kgs = 0;
+							vm.fkgs = d.netWeight * _this.value - 0;
+						}
+						vm.totalQuantity = vm.fkgs + vm.kgs;
+					},
+					/**
+					 * 获取不同的日期
+					 * @param AddDayCount 目标天数与当天的差
+					 * @returns {string}
+					 * @constructor
+					 */
+					GetDateStr: function(AddDayCount) {
+						var dd = new Date();
+						dd.setDate(dd.getDate() + AddDayCount); //获取AddDayCount天后的日期
+						var y = dd.getFullYear();
+						var m = dd.getMonth() + 1; //获取当前月份的日期
+						var d = dd.getDate();
+						if(m < 10) {
+							m = '0' + m
+						}
+						if(d < 10) {
+							d = '0' + d
+						}
+						return y + "-" + m + "-" + d;
+					}
+				}
+			});
+		</script>
+		<script src="../js/immersed.js"></script>
+	</body>
+
+</html>

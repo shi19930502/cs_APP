@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+
+		<style type="text/css">
+			.base-info-title {
+				padding: 16px;
+				background: #fff;
+				border-bottom: 1px solid #E6E6E6;
+			}
+			.base-info-title .base-img {
+				width: 60px;
+				height: 60px;
+			}
+			.base-info-title .base-img img {
+				width: 100%;
+				height: 100%;
+				border-radius: 2px;
+			}
+			.base-info-title .title-text {
+				padding-left: 18px;
+			}
+			.base-info-content {
+				background: #fff;
+				padding: 16px 16px 40px;
+			}
+			.base-info-content span {
+				color: #4C4C4C;
+			}
+			.mui-bar.mui-bar-tab div {
+				line-height: 50px;
+				text-align: center;
+				color: #6EC73E;
+			}
+			.mui-bar.mui-bar-tab div:nth-child(2) {
+				color: #CEC6DB;
+			}
+			.baseImgs div.mui-col-xs-3 {
+				text-align: center;
+			}
+			.baseImgs img {
+				width: 90%;
+				height: 100%;
+			}
+			.base-pos span:last-child {
+				color: #70C93E;
+				text-decoration: underline;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<div class="mui-content">
+					<div class="mui-row base-info-title">
+						<div class="mui-col-sm-2 mui-col-xs-2">
+							<div class="base-img">
+								<img class="mui-media-object mui-pull-left" :src="faceImg" width="100%" @tap="previewImage(faceImg)">
+							</div>
+						</div>
+						<div class="mui-col-sm-6 mui-col-xs-6 title-text">
+							<h4><strong>{{baseInfo.name}}</strong></h4>
+							<p>负责人：{{baseInfo.managementUsername}}</p>
+						</div>
+					</div>
+					<div class="base-info-content">
+						<p><label>基地编号：</label><span>{{baseInfo.no || ''}}</span></p>
+						<p><label>组织机构管理：</label><span>{{baseInfo.organization}}</span></p>
+						<p><label>网址：</label><span>{{baseInfo.website}}</span></p>
+						<p><label>基地面积：</label><span>{{baseInfo.area}}</span></p>
+						<p><label>创建时间：</label><span>{{baseInfo.createTime}}</span></p>
+						<p class="base-pos">
+							<label>基地坐标：</label>
+							<span>{{baseInfo.coordinate}}</span>
+							<span class="mui-icon mui-icon-location"></span>
+							<span @tap="toBaseMap">查看</span>
+						</p>
+						<p><label>平均降水：</label><span>{{baseInfo.precipitation}}</span></p>
+						<p><label>海拔高度：</label><span>{{baseInfo.altitude}}</span></p>
+						<p><label>平均气温：</label><span>{{baseInfo.averageTemperature}}</span></p>
+						<p><label>昼夜温差：</label><span>{{baseInfo.diurnalTemperatureDifference}}</span></p>
+						<p><label>行政区号：</label><span>{{baseInfo.code}}</span></p>
+						<p><label>行政区：</label><span>{{AreaInfoName}}</span></p>
+						<p><label>基地介绍：</label><span>{{baseInfo.remark}}</span></p>
+						<!--<p>基地图片：</p>
+						<div class="mui-row baseImgs">
+							<div class="mui-col-xs-3" v-for="d in photopathlist"><img :src="d" alt="" /></div>
+							<div class="mui-col-xs-3" v-for="d in photopathlist"><img :src="d" alt="" /></div>
+							<div class="mui-col-xs-3" v-for="d in photopathlist"><img :src="d" alt="" /></div>
+							<div class="mui-col-xs-3" v-for="d in photopathlist"><img :src="d" alt="" /></div>
+						</div>-->
+					</div>
+				</div>
+
+				<!--<nav class="mui-bar mui-bar-tab">
+					<div class="mui-row">
+						<div class="mui-col-xs-5" @tap="goBaseMainEdit">
+							<span class="mui-tab-label">编辑</span>
+						</div>
+						<div class="mui-col-xs-2">
+							<span class="mui-tab-label">|</span>
+						</div>
+						<div class="mui-col-xs-5" @tap="deletaBaseById">
+							<span class="mui-tab-label">删除</span>
+						</div>
+					</div>
+				</nav>-->
+			</div>
+		</script>
+
+	</body>
+	<script src="../libs/js/mui.min.js"></script>
+	<script src="../libs/js/vue.min.js"></script>
+	<script src="../js/comm.js"></script>
+	<script type="text/javascript">
+		// 实例
+		var vm = new Vue({
+			el: '#app',
+			template: indexTpl,
+			data: function() {
+				return {
+					baseId: '',
+					loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+					baseInfo: {},
+					faceImg: '../images/often.png',
+					photopathlist: [],
+					AreaInfoName: ''
+				}
+			},
+			mounted: function() {
+				/**
+				 * 监听refresh事件刷新页面
+				 */
+				window.addEventListener('refresh', function(e) {
+					
+				})
+				mui.plusReady(function() {
+					var self = plus.webview.currentWebview();
+					vm.baseId = self.baseInfo.baseId;
+					vm.baseInfo = self.baseInfo;
+					if(self.baseInfo.faceImg) {
+						vm.faceImg = self.baseInfo.faceImg;
+					}
+					/**
+					 * 基地图片
+					 */
+					if(self.baseInfo.photopathlist) {
+						var arr = [];
+						for(var i in self.baseInfo.photopathlist) {
+							var showPath = IMGURL + self.baseInfo.photopathlist[i].path + '&image/jpeg';
+							arr.push(showPath)
+						}
+						vm.photopathlist = arr;
+					}
+					/**
+					 * 获取行政区域名称
+					 */
+					vm.getAreaInfo(self.baseInfo.code)
+				})
+			},
+			methods: {
+				/**
+				 * 预览图片
+				 */
+				previewImage: function(url) {
+					var arr = [url];
+					plus.nativeUI.previewImage(arr);
+				},
+				/**
+				 * 跳转编辑基地
+				 */
+				goBaseMainEdit: function() {
+					var vm = this;
+					mui.openWindow({
+						url: 'base_list_add.html',
+						id: 'base_list_add',
+						extras: {
+							baseId: vm.baseId
+						},
+						styles: {
+							titleNView: { // 窗口的标题栏控件
+								titleText: '编辑基地',
+								backgroundColor: "#70C93E",
+								titleColor: "#fff",
+								autoBackButton: true,
+								titleSize: "18px",
+							}
+						}
+					})
+				},
+				/**
+				 * 删除基地
+				 */
+				deletaBaseById: function() {
+					var vm = this;
+					var msg = '确认删除?';
+					var title = '提示';
+					var btnValue = ['确认', '取消'];
+					mui.confirm(msg, title, btnValue, function(e) {
+						if(e.index == 0) {
+							getDataList(APIURL + 'business/planBase/deleteBybaseId', {
+								baseId: vm.baseId,
+							}, function(d) {
+								if(d && d.state === 0) {
+									// 先删除列表数据中的
+									for(var i in vm.baseListData) {
+										if(vm.baseListData[i].baseId == baseId) {
+											vm.baseListData.splice(i, 1);
+										}
+									}
+									mui.toast('删除成功');
+								} else {
+									mui.toast('删除失败');
+								}
+							})
+						}
+					})
+				},
+				/**
+				 * 获取行政区域
+				 */
+				getAreaInfo: function(code) {
+					var vm = this;
+					getDataList(APIURL + 'business/areainfo/queryByEntity', {
+						code: code,
+						enterpriseId: vm.loginUserInfo.enterpriseId
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData) {
+								vm.AreaInfoName = d.aaData.name;
+							}
+						}
+					})
+				},
+				/**
+				 * 查看基地地图
+				 */
+				toBaseMap: function() {
+					if('Android' === plus.os.name && navigator.userAgent.indexOf('StreamApp') > 0) {
+						plus.nativeUI.toast('当前环境暂不支持地图插件');
+						return;
+					}
+					mui.openWindow({
+						url: 'maps_map.html',
+						id: 'maps_map',
+						styles: {
+							titleNView: {
+								titleText: '基地坐标',
+								backgroundColor: "#70C93E",
+								titleColor: "#fff",
+								autoBackButton: true,
+								titleSize: "18px",
+							}
+						},
+						extras: {
+							coordinate: vm.baseInfo.coordinate,
+							baseObj: {
+								name: vm.baseInfo.name,
+								remark: vm.baseInfo.remark
+							}
+						},
+					})
+				}
+			}
+		});
+	</script>
+
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+		<style type="text/css">
+			.query-condition-warpper {
+				margin-bottom: 15px;
+			}
+			.query-condition-warpper div {
+				text-align: left;
+				padding-left: 15px;
+				background-position: right 22px center;
+			}
+			.query-condition-warpper p {
+				font-size: 16px;
+				height: 40px;
+				line-height: 40px;
+				text-align: right;
+				margin-bottom: 0;
+				padding-right: 15px;
+				padding-left: 15px;
+				color: #6EC73E;
+				position: relative;
+			}
+			.query-condition-warpper p span.line {
+				display: inline-block;
+				width: 1px;
+				height: 30px;
+				background: #E6E6E6;
+				position: absolute;
+				top: 5px;
+				right: 92px;
+			}
+			.query-condition-warpper p span:nth-child(2) {
+				display: inline-block;
+				width: 65px;
+				text-align: center;
+			}
+			/*底部全选按钮*/
+			
+			.mui-btn-success,
+			.mui-bar .mui-btn {
+				padding: 6px 22px;
+				background: #6EC73E;
+			}
+			.mui-bar .checkbox {
+				display: inline-block;
+				margin-top: 15px;
+			}
+			.mui-bar div:nth-child(2) {
+				text-align: right;
+				padding-right: 15px;
+			}
+			.mui-bar div:nth-child(1) {
+				padding-left: 15px;
+			}
+			.mui-bar div:nth-child(1) span {
+				position: absolute;
+				top: 14px;
+				left: 40px;
+			}
+			#pullrefresh.mui-scroll-wrapper {
+				top: 85px;
+			}
+			#pullrefresh .checkbox {
+				margin-top: 33px;
+			}
+		</style>
+
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<header class="mui-bar mui-bar-nav" id="header">
+					<div class="mui-action-back mui-pull-left navicon-back1"></div>
+					<h1 class="mui-title">添加作物</h1>
+					<div class="mui-pull-right back-text">自定义</div>
+				</header>
+				<div class="mui-content">
+					<div class="mui-row query-condition-warpper">
+						<div class="mui-col-sm-4 mui-col-xs-4">全部基地</div>
+					</div>
+					<!--数据列表-->
+					<div id="pullrefresh" class="mui-scroll-wrapper">
+						<div class="mui-scroll">
+							<template v-if="plantList.length>0">
+								<ul class="mui-table-view mbtenpx-list">
+									<li class="mui-table-view-cell mui-media" v-for="d in plantList">
+										<div class="mui-row">
+											<div class="mui-col-sm-1 mui-col-xs-1">
+												<div class="checkbox"></div>
+											</div>
+											<div class="mui-col-sm-10 mui-col-xs-10">
+												<img class="mui-media-object mui-pull-left" src="../images/putao.png">
+												<div class="mui-media-body">
+													<span class="fruit-name" style="font-size: 16px;">新疆葡萄</span>
+													<p class='mui-ellipsis'>品种：<span class="blue-text">3号特级</span></p>
+													<p class='mui-ellipsis'>种植时间：2017-10-27</p>
+													<p class='mui-ellipsis'>种植标准：无公害</p>
+												</div>
+											</div>
+											<div class="mui-col-xs-1">
+												<div class="mui-pull-right">
+													<p class='mui-ellipsis'>采收 2017-10-27</p>
+													<p class='mui-ellipsis'>至 2017-10-28</span>
+													</p>
+												</div>
+											</div>
+										</div>
+										<div class="mui-row edit-item">
+											<h6 class="mui-col-sm-6 mui-col-xs-6">基地 黄瓜种植基地</h6>
+											<h6 class="mui-col-sm-6 mui-col-xs-6"></h6>
+										</div>
+									</li>
+								</ul>
+							</template>
+							<!--暂无数据-->
+							<template v-else>
+								<div class="nodata">
+									<img src="../images/nodata.png" />
+								</div>
+							</template>
+						</div>
+					</div>
+				</div>
+				<!-- 底部导航 -->
+				<nav class="mui-bar mui-bar-tab mui-row">
+					<div class="mui-col-sm-6 mui-col-xs-6">
+						<div class="checkbox"></div>
+						<span>全选</span>
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6">
+						<button type="button" class="mui-btn mui-btn-success">确定</button>
+					</div>
+				</nav>
+			</div>
+		</script>
+
+	</body>
+	<script src="../libs/js/mui.min.js "></script>
+	<script src="../libs/js/vue.min.js "></script>
+	<script src="../js/comm.js "></script>
+
+	<script>
+		var vm = new Vue({
+			el: '#app',
+			template: indexTpl,
+			data: function() {
+				return {
+					loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+					// 可采收作物列表
+					plantList: [],
+					pageTatol: 0,
+					pageSize: 10,
+					pageNum: 1,
+					baseId: ''
+				}
+			},
+			mounted: function() {
+				this.getPlantList(false);
+				/**
+				 * 下拉加载分页初始化
+				 */
+				mui.init({
+					swipeBack: false,
+					pullRefresh: {
+						container: '#pullrefresh',
+						up: {
+							contentrefresh: '正在加载...',
+							callback: function() {
+								setTimeout(function() {
+									++vm.pageNum;
+									vm.getPlantList(true);
+									mui('#pullrefresh').pullRefresh().endPullupToRefresh((vm.pageNum > vm.pageTatol));
+								}, 1000);
+							}
+						}
+					}
+				});
+			},
+			methods: {
+				// 获取带采收列表
+				getPlantList: function(isUp) {
+					var vm = this;
+					getDataList(APIURL + 'business/plant/list', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+						pageSize: vm.pageSize,
+						pageNum: vm.pageNum,
+						baseId: vm.baseId
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData && d.aaData.length > 0) {
+								if(isUp) {
+									vm.plantList = vm.plantList.concat(d.aaData);
+								} else {
+									vm.plantList = d.aaData;
+									vm.pageTatol = Math.ceil(d.dataCount / vm.pageSize);
+								}
+							} else {
+								if(!isUp) {
+									vm.plantList = [];
+								}
+							}
+						}
+					});
+				},
+			}
+		});
+	</script>
+	<script src="../js/immersed.js"></script>
+
+</html>

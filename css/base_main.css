@@ -1,0 +1,29 @@
+/***********************************************底部导航*/
+/*基地*/
+.mui-bar-tab .mui-tab-item .tabicon-base{
+	background: url("../images/jidi_tabicon_jidi.png");
+	background-size: 100%;
+}
+.mui-bar-tab .mui-tab-item.mui-active .tabicon-base{
+	background: url("../images/jidi_tabicon_jidi_a.png");
+	background-size: 100%;
+}
+/*监控*/
+.mui-bar-tab .mui-tab-item .tabicon-monitor{
+	background: url("../images/jidi_tabicon_jiankong.png");
+	background-size: 100%;
+}
+.mui-bar-tab .mui-tab-item.mui-active .tabicon-monitor{
+	background: url("../images/jidi_tabicon_jiankong_a.png");
+	background-size: 100%;
+}
+/*农事*/
+.mui-bar-tab .mui-tab-item .tabicon-farming{
+	background: url("../images/jidi_tabicon_nongshi.png");
+	background-size: 100%;
+}
+.mui-bar-tab .mui-tab-item.mui-active .tabicon-farming{
+	background: url("../images/jidi_tabicon_nongshi_a.png");
+	background-size: 100%;
+}
+

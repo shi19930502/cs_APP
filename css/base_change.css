@@ -1,0 +1,33 @@
+/*********搜索结果基地列表*/
+/*去掉ul上边线*/
+.mui-table-view:before{
+	background-color: #fff;
+}
+.mui-table-view{
+	background-color: #efeff4; 
+}
+/*列表下边距0*/
+.mui-table-view-cell{
+	background: #fff;
+	position: relative;
+	padding-bottom: 55px;
+}
+/*基地面积*/
+.base-area{
+	width:50px;
+	height:16px; 
+	line-height: 16px;
+	background: #3ED4FF;
+	border-radius: 4px;
+	color: #fff;
+	text-align: center !important;
+}
+
+/*当前选择*/
+.app-checkboxed{
+	width: 18px;
+	height: 18px;
+	background: url("../images/qhjd_checkbox_a.png");
+	background-size: 100% 100%;
+	margin-top: 33px;
+}

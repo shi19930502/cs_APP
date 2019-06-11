@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+
+	</head>
+	<style>
+		.packging_bj {
+			background-color: #E3E3E3;
+		}
+		.pingzhong_biaoji {
+			color: #3ed4ff;
+			font-size: 12px;
+		}
+		.caish_zt {
+			background-color: #3ed4ff;
+			font-size: 12px;
+			color: #FFFFFF;
+			line-height: 40px;
+			border-radius: 5px;
+			padding: 2px 5px;
+			text-align: right;
+		}
+		.mbtenpx .xuanze_bz {
+			width: 35%;
+			padding: 12px;
+			margin: 0;
+		}
+		.mbtenpx .xuanze_bz input {
+			width: 18px;
+			height: 18px;
+			background-color: #70C93E;
+		}
+		/*全选（和css时候不要冲突了）*/
+		
+		.mui-bar .checkbox {
+			display: inline-block;
+			margin-top: 33px;
+		}
+		/*底部全选按钮*/
+		
+		.mui-btn-success,
+		.mui-bar .mui-btn {
+			padding: 6px 22px;
+			background: #6EC73E;
+		}
+		.mui-bar .checkbox {
+			display: inline-block;
+			margin-top: 15px;
+		}
+		.mui-bar div:nth-child(2) {
+			text-align: right;
+			padding-right: 15px;
+		}
+		.mui-bar div:nth-child(1) {
+			padding-left: 15px;
+		}
+		.mui-bar div:nth-child(1) span {
+			position: absolute;
+			top: 14px;
+			left: 40px;
+		}
+		/*列表的小圆点*/
+		
+		.mbtenpx-list .mui-media-body p {
+			position: relative;
+			padding-left: 10px;
+		}
+		.mbtenpx-list .mui-media-body p span {
+			display: inline-block;
+			width: 4px;
+			height: 4px;
+			border-radius: 2px;
+			position: absolute;
+			top: 6px;
+			left: 0;
+		}
+		.mbtenpx-list .mui-media-body p span.bggreen {
+			background: #6EC73E;
+		}
+		.mbtenpx-list .mui-media-body p span.bgblue {
+			background: #3ED4FF;
+		}
+		.mbtenpx-list .mui-media-body p span.bgpurple {
+			background: #7DA7FA;
+		}
+		#pullrefresh.mui-scroll-wrapper {
+			top: 120px;
+		}
+	</style>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<div class="mui-content">
+					<div id="pullrefresh" class="mui-scroll-wrapper">
+						<div class="mui-scroll">
+							<ul class="mui-table-view mbtenpx-list">
+								<li @tap="getDetailListBack(d)" class="mui-table-view-cell mui-media packging_bj" v-for="d in AllowOutTemplate" style="padding-bottom: 15px;margin-bottom: 0;">
+									<div class="mui-row">
+										<div class="mui-col-xs-9">
+											<div class="mui-media-body">
+												<span class="fruit-name" style="font-size: 16px;width: 80%;">{{d.templateName}}</span>
+												<p class='mui-ellipsis'><span class="bggreen"></span>产品品种：{{d.varietiesName}}</p>
+												<p class='mui-ellipsis'><span class="bgblue"></span>产品等级：{{d.grade == 1 ? '一等品' :d.grade == 2 ? '二等品': '三等品'}}</p>
+												<p class='mui-ellipsis'><span class="bgpurple"></span>仓库：{{d.warehouseName}}</p>
+												<p class='mui-ellipsis'><span class="bgpurple"></span>入库时间：{{d.operationDate}}</p>
+											</div>
+										</div>
+										<div class="mui-col-xs-3 right">
+											<div class="mui-pull-right">
+												<p class='mui-ellipsis base-area'>批次号：{{d.batchId}}</p>
+											</div>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+		</script>
+
+		<script src="../libs/js/mui.min.js"></script>
+		<script src="../libs/js/vue.min.js"></script>
+		<script src="../js/comm.js"></script>
+		<script src="../js/mixin.js"></script>
+
+		<script>
+			var vm = new Vue({
+				el: '#app',
+				template: indexTpl,
+				mixins: [mixin],
+				data: function() {
+					return {
+						loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+						pageSize: 10,
+						pageNum: 1,
+						pageTatol: 0,
+						warehouseId: '',
+						keyWord: '',
+						AllowOutTemplate: [],
+					}
+				},
+				mounted: function() {
+					/**
+					 * 下拉加载分页初始化
+					 */
+					mui.init({
+						swipeBack: false,
+						pullRefresh: {
+							container: '#pullrefresh',
+							down: {
+								style: 'circle',
+								auto: true,
+								callback: function() {
+									vm.pageNum = 1;
+									vm.getAllowOutTemplate(false, function() {
+										mui('#pullrefresh').pullRefresh().endPulldown();
+									});
+								}
+							},
+							up: {
+								contentrefresh: '正在加载...',
+								callback: function() {
+									++vm.pageNum;
+									vm.getAllowOutTemplate(true);
+									mui('#pullrefresh').pullRefresh().endPullupToRefresh((vm.pageNum > vm.pageTatol));
+								}
+							}
+						}
+					});
+				},
+				methods: {
+					plusReady: function() {
+						var self = plus.webview.currentWebview();
+						if(self.warehouseId) {
+							vm.warehouseId = self.warehouseId;
+						}
+					},
+					/**
+					 * 获取选择原料列表
+					 * @param {Object} isUp
+					 */
+					getAllowOutTemplate: function(isUp, cb) {
+						getDataList(APIURL + 'business/documentDetail/getAllowOutTemplate', {
+							pageSize: this.pageSize,
+							pageNum: this.pageNum,
+							warehouseId: this.warehouseId,
+							keyWord: this.keyWord,
+							enterpriseId: this.loginUserInfo.enterpriseId,
+							operationDateStr: this.GetDateStr(0)
+						}, function(d) {
+							console.log(JSON.stringify(d))
+							if(d && d.state === 0) {
+								this.pageTatol = Math.ceil(d.dataCount / this.pageSize);
+								if(d.aaData) {
+									// 处理时间
+									for(var i in d.aaData) {
+										if(d.aaData[i].operationDate) {
+											d.aaData[i].operationDate = d.aaData[i].operationDate.split(' ')[0];
+										}
+									}
+
+									if(isUp) {
+										this.AllowOutTemplate = this.AllowOutTemplate.concat(d.aaData);
+									} else {
+										this.AllowOutTemplate = d.aaData;
+									}
+								} else {
+									if(!isUp) {
+										this.AllowOutTemplate = [];
+									}
+									mui.toast('没有更多数据了');
+								}
+							}
+							cb && cb();
+						}.bind(this))
+					},
+					/**
+					 * 获取原料返回
+					 * @param {Object} d
+					 */
+					getDetailListBack: function(d) {
+						var list = plus.webview.currentWebview().opener();
+						mui.fire(list, 'getItem', {
+							item: d
+						});
+						mui.back();
+					}
+				}
+			});
+		</script>
+	</body>
+
+</html>

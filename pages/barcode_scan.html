@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+		<title>扫码登录</title>
+		<style type="text/css">
+			#bcid {
+				width: 100%;
+				position: absolute;
+				top: 0px;
+				bottom: 44px;
+				text-align: center;
+			}
+			.tip {
+				color: #FFFFFF;
+				font-weight: bold;
+				text-shadow: 0px -1px #103E5C;
+			}
+			footer {
+				width: 100%;
+				height: 44px;
+				position: absolute;
+				bottom: 0px;
+				line-height: 44px;
+				text-align: center;
+				color: #FFF;
+			}
+			.fbt {
+				width: 50%;
+				height: 100%;
+				background-color: #70C93E;
+				float: left;
+			}
+			.fbt:active {
+				-webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.5);
+				box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.5);
+			}
+		</style>
+	</head>
+
+	<body style="background-color: #000000;">
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<div id="bcid">
+					<div style="height:40%"></div>
+					<p class="tip">...载入中...</p>
+				</div>
+				<footer>
+					<div class="fbt" @tap="mui.back()">取　 消</div>
+					<div class="fbt" @tap="scanPicture()">从相册选择二维码</div>
+				</footer>
+			</div>
+		</script>
+		<script src="../libs/js/mui.min.js"></script>
+		<script src="../libs/js/vue.min.js"></script>
+		<script src="../js/comm.js"></script>
+
+		<script type="text/javascript">
+			var vm = new Vue({
+				el: '#app',
+				template: indexTpl,
+				data: function() {
+					return {
+						ws: null,
+						wo: null,
+						loginUserInfo: null,
+					}
+				},
+				mounted: function() {
+					var vm = this;
+					mui.plusReady(function() {
+						// 获取窗口对象
+						vm.ws = plus.webview.currentWebview();
+						vm.wo = vm.ws.opener();
+						vm.loginUserInfo = vm.ws.loginUserInfo;
+						// 开始扫描
+						vm.ws.addEventListener('show', function() {
+							scan = new plus.barcode.Barcode('bcid');
+							scan.onmarked = vm.onmarked;
+							scan.start({
+								conserve: true,
+								filename: '_doc/barcode/'
+							});
+						}, false);
+						// 显示页面并关闭等待框
+						vm.ws.show('pop-in');
+					})
+				},
+				methods: {
+					/**
+					 * 二维码扫描成功
+					 * @param {Object} type
+					 * @param {Object} result
+					 * @param {Object} file
+					 */
+					onmarked: function(type, result, file) {
+						var vm = this;
+						switch(type) {
+							case plus.barcode.QR:
+								type = 'QR';
+								break;
+							case plus.barcode.EAN13:
+								type = 'EAN13';
+								break;
+							case plus.barcode.EAN8:
+								type = 'EAN8';
+								break;
+							default:
+								type = '其它' + type;
+								break;
+						};
+						// 二维码返回信息
+						result = result.replace(/\n/g, '');
+						// 调用接口登录成功返回
+						getDataList(LOGINURL + 'QRCodeLogin/', {
+							username: vm.loginUserInfo.loginUsername,
+							password: vm.loginUserInfo.password,
+							uuid: result.replace(/\"/g, '')
+						}, function(d) {
+							if(d && d.state === 0) {
+								if(d.aaData) {
+									mui.toast('登录成功')
+									mui.back();
+								} else {
+									mui.toast('二维码失效请从新扫码');
+									mui.back();
+								}
+							}
+						})
+					},
+					/**
+					 * 从相册中选择二维码图片
+					 */
+					scanPicture: function() {
+						var vm = this;
+						plus.gallery.pick(function(path) {
+							plus.barcode.scan(path, vm.onmarked, function(error) {
+								plus.nativeUI.alert('无法识别此图片');
+							});
+						}, function(err) {
+							console.log('Failed: ' + err.message);
+						});
+					}
+				}
+			});
+		</script>
+	</body>
+
+</html>

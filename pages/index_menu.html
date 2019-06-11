@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>主页侧滑菜单</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css">
+		<style type="text/css">
+			.head {
+				width: 100%;
+				height: 250px;
+				background: #70C93E;
+				padding-top: 100px;
+				color: #fff;
+				padding-left: 15px;
+			}
+			.head-img {
+				width: 60px;
+				height: 60px;
+				border-radius: 30px;
+				overflow: hidden;
+				text-align: center;
+			}
+			.head-username {
+				line-height: 60px;
+			}
+			.head-edit {
+				padding-top: 15px;
+			}
+			.gnlist {
+				padding: 50px 20px;
+			}
+			.gnlist div {
+				margin-bottom: 15px;
+			}
+			.gnlist div span {
+				margin-right: 15px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<div class="mui-content">
+					<div class="head">
+						<div class="mui-row">
+							<div class="mui-col-xs-3">
+								<div class="head-img">
+									<img :src="headPortrait" width="100%" height="100%" />
+								</div>
+							</div>
+							<div class="mui-col-xs-9">
+								<div class="head-username">{{UserInfoDetails.nickName}}</div>
+							</div>
+						</div>
+						<div class="head-edit" @tap="toEditUserinfo">编辑个人资料<span class="mui-icon mui-icon-compose"></span></div>
+					</div>
+					<div class="gnlist">
+						<div @tap="toUpdatePassword"><span class="mui-icon mui-icon-gear"></span>修改密码</div>
+						<div @tap="changeLogin"><span class="mui-icon mui-icon-loop"></span>切换账号</div>
+						<div @tap="quit"><span class="mui-icon mui-icon-upload"></span>退出</div>
+					</div>
+				</div>
+			</div>
+		</script>
+
+		<script src="../libs/js/mui.min.js"></script>
+		<script src="../libs/js/vue.min.js"></script>
+		<script src="../js/comm.js"></script>
+
+		<script type="text/javascript">
+			var vm = new Vue({
+				el: '#app',
+				template: indexTpl,
+				data: function() {
+					return {
+						loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+						UserInfoDetails: {},
+						headPortrait: '../images/often.png'
+					}
+				},
+				mounted: function() {
+					var vm = this;
+					mui.init({
+						swipeBack: false,
+						beforeback: function() {
+							var w = plus.webview.currentWebview().opener();
+							mui.fire(w, 'changeShowMenu', 'false');
+							w.opener().setStyle({
+								mask: 'none'
+							});
+						}
+					});
+					vm.getUserInfoById();
+					//添加自定义事件监听
+					window.addEventListener('userInfo', function(event) {
+						vm.loginUserInfoDetail = event.detail
+						vm.getUserInfoById();
+						if(vm.loginUserInfoDetail.headPortrait) {
+							vm.headPortrait = IMGURL + event.detail.headPortrait + '&image/jpeg'
+						}
+					});
+					window.addEventListener('refresh', function(e) {
+						vm.getUserInfoById();
+					})
+				},
+				methods: {
+					/** 
+					 * 编辑资料
+					 */
+					toEditUserinfo: function() {
+						var vm = this;
+						mui.openWindow({
+							url: 'index_userInfo_edit.html',
+							id: 'index_userInfo_edit',
+							extras: {
+								UserInfoDetails: vm.UserInfoDetails
+							},
+							styles: {
+								titleNView: { // 窗口的标题栏控件
+									titleText: "修改资料",
+									backgroundColor: "#70C93E",
+									titleColor: "#fff",
+									autoBackButton: true,
+									titleSize: "18px",
+									splitLine: {
+										color: "#70C93E",
+										height: "1px"
+									}
+								}
+							}
+						})
+					},
+					/**
+					 * 修改密码
+					 */
+					toUpdatePassword: function() {
+						mui.openWindow({
+							url: 'index_userInfo_updatepsw.html',
+							id: 'index_userInfo_updatepsw'
+						})
+					},
+					/**
+					 * 切换账号
+					 */
+					changeLogin: function() {
+						localStorage.removeItem('loginUserInfo');
+						plus.runtime.restart();
+					},
+					/**
+					 * 退出
+					 */
+					quit: function() {
+						plus.runtime.quit();
+					},
+					/**
+					 * 获取用户详细信息
+					 */
+					getUserInfoById: function() {
+						var vm = this;
+						getDataList(APIURL + 'business/user/list', {
+							userId: vm.loginUserInfo.userId,
+							enterpriseId: vm.loginUserInfo.enterpriseId
+						}, function(d) {
+							if(d && d.state === 0) {
+								if(d.aaData && d.aaData[0]) {
+									// 处理头像
+									if(d.aaData[0].headPortrait) {
+										d.aaData[0].headImg = IMGURL + d.aaData[0].headPortrait + '&image/jpeg';
+										vm.headPortrait = IMGURL + d.aaData[0].headPortrait + '&image/jpeg'
+									} else {
+										d.aaData[0].headImg = '../images/often.png';
+									}
+									// 出生日期
+									if(d.aaData[0].birthDate) {
+										d.aaData[0].birthDate = d.aaData[0].birthDate.split(' ')[0];
+									}
+
+									for(var i in d.aaData[0]) {
+										if(d.aaData[0][i] == 'undefined' || d.aaData[0] == undefined) {
+											d.aaData[0][i] = '';
+										}
+									}
+
+									vm.UserInfoDetails = d.aaData[0]
+								}
+							}
+						})
+					},
+				}
+			});
+		</script>
+	</body>
+
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>添加联系人</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../css/comm.css" />
+		<style type="text/css">
+			.mui-table-view {
+				margin-top: 0 !important;
+			}
+			.mui-table-view-cell {
+				margin-bottom: 0 !important;
+			}
+			.mui-content {
+				padding-bottom: 52px;
+			}
+			.saveBtn {
+				height: 50px;
+				width: 100%;
+				background: #70C93E;
+				color: #fff;
+				text-align: center;
+				line-height: 50px;
+				position: fixed;
+				bottom: 0;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<header class="mui-bar mui-bar-nav" id="header">
+					<div class="mui-action-back mui-pull-left navicon-back1"></div>
+					<h1 id="title" class="mui-title">选择人员</h1>
+					<div class="mui-pull-right back-text" @tap="selectAll">{{qxbtnText}}</div>
+				</header>
+				<div class="mui-content">
+					<div id="pullrefresh" class="mui-scroll-wrapper">
+						<div class="mui-scroll">
+							<ul class="mui-table-view">
+								<li class="mui-table-view-cell" v-for="d in userList" @tap="checkLi(d.userId,d)">
+									<div class="mui-row">
+										<div class="mui-col-xs-1">
+											<div class="checkbox" :id="d.userId"></div>
+										</div>
+										<div class="mui-col-xs-6">{{d.nickName}}</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="saveBtn" @tap="saveAdd">确定添加<span v-show="addresseeUserId.length > 0">({{addresseeUserId.length}})</span></div>
+			</div>
+		</script>
+
+		<script src="../libs/js/mui.min.js"></script>
+		<script src="../libs/js/vue.min.js"></script>
+		<script src="../js/comm.js"></script>
+		<script type="text/javascript">
+			var vm = new Vue({
+				el: '#app',
+				template: indexTpl,
+				data: function() {
+					return {
+						loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+						userList: [],
+						selectUsers: [],
+						isCheckbox: 'checkbox',
+						addresseeUserId: [],
+						qxbtnText: '全选',
+						pageTatol: 0
+					}
+				},
+				mounted: function() {
+					var vm = this;
+					/**
+					 * 下拉加载分页初始化
+					 */
+					mui.init({
+						swipeBack: false,
+						pullRefresh: {
+							container: '#pullrefresh',
+							down: {
+								style: 'circle',
+								auto: true,
+								offset: '65px',
+								callback: function() {
+									vm.getUserList(false, function() {
+										mui('#pullrefresh').pullRefresh().endPulldown();
+									});
+								}
+							},
+						}
+					});
+					/**
+					 * 获取已经选择了的收件人过滤
+					 */
+					mui.plusReady(function() {
+						var self = plus.webview.currentWebview();
+						self.setStyle({
+							scrollIndicator: 'none'
+						});
+						// 获取已经选了的人员
+						if(self.selectUsers) {
+							vm.selectUsers = self.selectUsers;
+						}
+					})
+				},
+				methods: {
+					/**
+					 * 获取收件人
+					 */
+					getUserList: function(isUp, cb) {
+						var vm = this;
+						getDataList(APIURL + 'business/user/list', {
+							enterpriseId: vm.loginUserInfo.enterpriseId,
+							creditNumber: 0
+						}, function(d) {
+							if(d.aaData && d.aaData.length > 0) {
+								// 排除已经选择了的
+								for(var i in vm.selectUsers) {
+									for(var j in d.aaData) {
+										if(vm.selectUsers[i].userId == d.aaData[j].userId) {
+											d.aaData.splice(j, 1)
+										}
+									}
+								}
+								// 原则上自己不能给自己发消息
+								for(var i in d.aaData) {
+									if(vm.loginUserInfo.userId == d.aaData[i].userId) {
+										d.aaData.splice(i, 1)
+									};
+								}
+								vm.userList = d.aaData;
+							} else {
+								vm.userList = [];
+								mui.toast('没有更多数据了');
+							}
+							cb && cb();
+						})
+					},
+					/**
+					 * 多选事件
+					 * @param {Object} userId
+					 */
+					checkLi: function(userId, d) {
+						var ths = document.getElementById(userId);
+						if(ths.className == 'checkbox') {
+							ths.classList.add('checkboxed');
+							this.addresseeUserId.push(d);
+						} else {
+							ths.classList.remove('checkboxed');
+							for(var i in this.addresseeUserId) {
+								if(this.addresseeUserId[i].userId == userId) {
+									this.addresseeUserId.splice(i, 1);
+								}
+							}
+						}
+					},
+					/**
+					 * 确定添加
+					 */
+					saveAdd: function() {
+						if(this.addresseeUserId.length == 0) {
+							mui.alert('至少选择一个收件人！');
+							return false;
+						}
+						var list = plus.webview.currentWebview().opener();
+						mui.fire(list, 'getUsers', {
+							users: this.addresseeUserId
+						});
+						mui.back();
+					},
+					/**
+					 * 全选
+					 */
+					selectAll: function() {
+						var vm = this;
+						var arr = document.getElementsByClassName('checkbox');
+						if(vm.qxbtnText == '全选') {
+							vm.qxbtnText = '取消全选';
+							var a = []
+							for(var i = 0; i < arr.length; i++) {
+								arr[i].classList.add('checkboxed');
+								a.push(vm.userList[i])
+							}
+							vm.addresseeUserId = a;
+						} else {
+							vm.qxbtnText = '全选';
+							vm.addresseeUserId = [];
+							for(var i = 0; i < arr.length; i++) {
+								arr[i].classList.remove('checkboxed');
+							}
+						}
+					},
+				}
+			});
+		</script>
+		<script src="../js/immersed.js"></script>
+
+	</body>
+
+</html>

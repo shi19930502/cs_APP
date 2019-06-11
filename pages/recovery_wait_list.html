@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>农事助手</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../libs/css/mui.min.css">
+		<link rel="stylesheet" href="../libs/css/mui.picker.min.css" />
+		<link rel="stylesheet" href="../css/comm.css">
+		<style type="text/css">
+			.query-condition-warpper {
+				margin-bottom: 15px;
+			}
+			.query-condition-warpper div {
+				text-align: left;
+				padding-left: 15px;
+				background-position: right 22px center;
+			}
+			.query-condition-warpper p {
+				font-size: 16px;
+				height: 40px;
+				line-height: 40px;
+				text-align: right;
+				margin-bottom: 0;
+				padding-right: 15px;
+				padding-left: 15px;
+				color: #6EC73E;
+				position: relative;
+			}
+			.query-condition-warpper p span.line {
+				display: inline-block;
+				width: 1px;
+				height: 30px;
+				background: #E6E6E6;
+				position: absolute;
+				top: 5px;
+				right: 92px;
+			}
+			.query-condition-warpper p span:nth-child(2) {
+				display: inline-block;
+				width: 65px;
+				text-align: center;
+			}
+			/*底部全选按钮*/
+			
+			.mui-btn-success,
+			.mui-bar .mui-btn {
+				padding: 6px 22px;
+				background: #6EC73E;
+			}
+			.mui-bar .checkbox {
+				display: inline-block;
+				margin-top: 15px;
+			}
+			.mui-bar div:nth-child(2) {
+				text-align: right;
+				padding-right: 15px;
+			}
+			.mui-bar div:nth-child(1) {
+				padding-left: 15px;
+			}
+			.mui-bar div:nth-child(1) span {
+				position: absolute;
+				top: 14px;
+				left: 40px;
+			}
+			#pullrefresh .checkbox,
+			#pullrefresh .checkboxed {
+				margin-top: 33px;
+			}
+		</style>
+
+	</head>
+
+	<body>
+		<div id="app"></div>
+		<script type="text/x-template" id="indexTpl">
+			<div>
+				<div class="mui-content">
+					<!--数据列表-->
+					<div id="pullrefresh" class="mui-scroll-wrapper">
+						<div class="mui-scroll">
+							<ul class="mui-table-view mbtenpx-list">
+								<li class="mui-table-view-cell mui-media" v-for="d in plantList">
+									<div class="mui-row">
+										<div class="mui-col-sm-1 mui-col-xs-1" v-show="isShowCheckbox">
+											<div class="checkbox" @tap="selectToAddList(event,d.plantId,d)"></div>
+										</div>
+										<div class="mui-col-sm-10 mui-col-xs-10">
+											<img class="mui-media-object mui-pull-left" :src="d.imgSrc">
+											<div class="mui-media-body">
+												<span class="fruit-name" style="font-size: 16px;width: 82%;">{{d.templateName}}</span>
+												<p class='mui-ellipsis'>品种：<span class="blue-text">{{d.varietiesName}}</span></p>
+												<p class='mui-ellipsis'>种植时间：{{d.plantingTime}}</p>
+												<p class='mui-ellipsis'>
+													<span>种植标准：</span>
+													<span v-if="d.plantStandard == 0">有机</span>
+													<span v-if="d.plantStandard == 1">绿色</span>
+													<span v-if="d.plantStandard == 2">无公害</span>
+												</p>
+											</div>
+										</div>
+										<div :class="col2">
+											<div class="mui-pull-right">
+												<p class='mui-ellipsis'>采收 {{d.harvestBegin}}</p>
+												<p class='mui-ellipsis'>至 {{d.endHarvest}}</span>
+												</p>
+											</div>
+										</div>
+									</div>
+									<div class="mui-row edit-item">
+										<h6 class="mui-col-sm-6 mui-col-xs-6">地块 {{d.areaName}}</h6>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<!-- 底部导航 -->
+				<nav class="mui-bar mui-bar-tab mui-row" v-show="isShowCheckbox">
+					<div class="mui-col-sm-6 mui-col-xs-6">
+						<!--<div class="checkbox"></div>-->
+						<!--<span>全选</span>-->
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6">
+						<button type="button" class="mui-btn mui-btn-success" @tap="toAddRecovery">采收({{recoveryDetailData.length}})</button>
+					</div>
+				</nav>
+			</div>
+		</script>
+	</body>
+	<script src="../libs/js/mui.min.js "></script>
+	<script src="../libs/js/vue.min.js "></script>
+	<script src="../libs/js/mui.picker.min.js"></script>
+	<script src="../js/comm.js "></script>
+
+	<script>
+		var vm = new Vue({
+			el: '#app',
+			template: indexTpl,
+			data: function() {
+				return {
+					loginUserInfo: JSON.parse(localStorage.getItem('loginUserInfo')),
+					// 是否显示复选框
+					isShowCheckbox: true,
+					// 没有显示复选框的时候
+					col2: 'mui-col-sm-1 mui-col-xs-1 right',
+					// 可采收作物列表
+					plantList: [],
+					selectedList: [],
+					pageTatol: 0,
+					pageSize: 10,
+					pageNum: 1,
+					baseId: '',
+					// 已经选择待采收作物
+					recoveryDetailData: [],
+				}
+			},
+			mounted: function() {
+				var vm = this;
+				/**
+				 * 获取是从哪个页面进入的，不同操作
+				 */
+				mui.plusReady(function() {
+					var self = plus.webview.currentWebview();
+					// 根据上一步选择的基地查找该基地待采收的作物
+					if(self.selectedBaseId) {
+						vm.baseId = self.selectedBaseId;
+						vm.selectedList = self.selectedList;
+					}
+				})
+				/**
+				 * 下拉加载分页初始化
+				 */
+				mui.init({
+					swipeBack: false,
+					pullRefresh: {
+						container: '#pullrefresh',
+						down: {
+							style: 'circle',
+							auto: true,
+							callback: function() {
+								vm.pageNum = 1;
+								vm.getPlantList(false, vm.baseId, function() {
+									mui('#pullrefresh').pullRefresh().endPulldown();
+								});
+							}
+						},
+						up: {
+							contentrefresh: '正在加载...',
+							callback: function() {
+								++vm.pageNum;
+								vm.getPlantList(true, vm.baseId);
+								mui('#pullrefresh').pullRefresh().endPullupToRefresh((vm.pageNum > vm.pageTatol));
+							}
+						}
+					}
+				});
+			},
+			methods: {
+				// 获取带采收列表
+				getPlantList: function(isUp, baseId, cb) {
+					var vm = this;
+					getDataList(APIURL + 'business/plant/queryPlantAppListCan', {
+						enterpriseId: vm.loginUserInfo.enterpriseId,
+						pageSize: vm.pageSize,
+						pageNum: vm.pageNum,
+						baseId: baseId
+					}, function(d) {
+						if(d && d.state === 0) {
+							if(d.aaData && d.aaData.length > 0) {
+								// 处理图片
+								for(var i in d.aaData) {
+									if(d.aaData[i].photo) {
+										d.aaData[i].imgSrc = IMGURL + d.aaData[i].photo + '&image/jpeg';
+									}
+									d.aaData[i].templateName = d.aaData[i].templeteName;
+									d.aaData[i].acreName = d.aaData[i].areaName;
+								}
+
+								// 排除已经选择了的作物不能在才添加
+								for(var i in vm.selectedList) {
+									for(var j in d.aaData) {
+										if(vm.selectedList[i].plantId == d.aaData[j].plantId) {
+											d.aaData.splice(j, 1)
+										}
+									}
+								}
+
+								// 是否为上拉加载
+								if(isUp) {
+									vm.plantList = vm.plantList.concat(d.aaData);
+								} else {
+									vm.plantList = d.aaData;
+									vm.pageTatol = Math.ceil(d.dataCount / vm.pageSize);
+								}
+							} else {
+								if(!isUp) {
+									vm.plantList = [];
+								}
+								mui.toast('没有更多数据了');
+							}
+							cb && cb();
+						}
+					});
+				},
+				// 多选操作
+				selectToAddList: function(e, plantId, d) {
+					var vm = this;
+					var $this = e.target;
+					if($this.getAttribute('class') == 'checkbox') {
+						$this.setAttribute('class', 'checkboxed');
+						// 封装采收数据
+						d.produceId = '';
+						d.produceName = '无';
+						d.part = '无';
+						d.netWeight = 1;
+						d.unitId = 1;
+						d.unitName = 'KG';
+						d.quantity = 1;
+						d.price = 1;
+						d.validity = 30;
+						d.grade = 1;
+
+						vm.recoveryDetailData.push(d);
+					} else {
+						$this.setAttribute('class', 'checkbox');
+						for(var i in vm.recoveryDetailData) {
+							if(vm.recoveryDetailData[i].plantId == plantId) {
+								vm.recoveryDetailData.splice(i, 1);
+							}
+						}
+					}
+				},
+				// 批量到新增页面
+				toAddRecovery: function() {
+					var view = plus.webview.getWebviewById('recovery_add');
+					mui.fire(view, 'addback', {
+						recoveryDetailData: this.recoveryDetailData
+					});
+					mui.back();
+				},
+			}
+		});
+	</script>
+
+</html>
